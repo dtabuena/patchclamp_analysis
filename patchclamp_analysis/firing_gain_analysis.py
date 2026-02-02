@@ -1,4 +1,10 @@
 
+import numpy as np
+import scipy as sci
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import os
+
 from patchclamp_analysis.ephys_utilities import (
     protocol_baseline_and_stim,
     spikes_per_stim,
