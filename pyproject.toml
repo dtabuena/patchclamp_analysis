@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "patchclamp_analysis"
+version = "0.1.0"
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "pyabf",
+]
+```
+
+Commit it.
+
+**File 2:** "Add file" > "Create new file", name it `.gitignore`:
+```
+__pycache__/
+*.pyc
+*.egg-info/
+.ipynb_checkpoints/
