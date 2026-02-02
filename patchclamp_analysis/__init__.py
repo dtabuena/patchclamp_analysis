@@ -5,11 +5,3 @@ from . import (
     # uncomment as modules are added
 )
 
-
-"""
-import numpy as np
-import scipy as sci
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import os
-"""
