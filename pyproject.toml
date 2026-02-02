@@ -11,13 +11,3 @@ dependencies = [
     "matplotlib",
     "pyabf",
 ]
-```
-
-Commit it.
-
-**File 2:** "Add file" > "Create new file", name it `.gitignore`:
-```
-__pycache__/
-*.pyc
-*.egg-info/
-.ipynb_checkpoints/
