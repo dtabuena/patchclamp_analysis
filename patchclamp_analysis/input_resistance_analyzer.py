@@ -1,4 +1,9 @@
+import numpy as np
 import scipy as sci
+import matplotlib.pyplot as plt
+import os
+from patchclamp_analysis.ephys_utilities import protocol_baseline_and_stim
+
 
 def input_resistance_analyzer(abf, dVm_limits = [-30, 10],to_plot=False,figopt={'type':'jpg','dpi':300}):
     '''Calulates the series of delta Vs and delta Is and fits with a line to find the resistance.'''
