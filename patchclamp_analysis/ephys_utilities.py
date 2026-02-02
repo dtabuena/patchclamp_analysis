@@ -179,3 +179,7 @@ def initial_inst_firing_rate(sweepX,inds_list,num_spikes=2,to_plot=False):
         rate_list.append(rate)
     rate_list = np.array(rate_list)
     return rate_list
+
+def movmean(x, n=3):
+    """Simple moving-average function to smooth the signal."""
+    return np.convolve(x, np.ones(n)/n, mode='same')
