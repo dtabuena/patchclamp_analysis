@@ -65,6 +65,25 @@ def spikes_per_stim(abf,spike_args,mode='count', to_plot=0):
     return results_dict
 
 
+def calc_inactivation(isi_rates, spike_counts, stim_currents, inact_thresh=0.9):
+    # Calculate ratio of spike count to ISI-based rate estimate
+    isi_ratio = np.divide(spike_counts, isi_rates, out=np.zeros_like(spike_counts, dtype=float), where=isi_rates!=0)
+
+    # Find first sweep after max spike count where ratio drops below threshold
+    max_ind = np.argmax(spike_counts)
+    inactivating = isi_ratio <= inact_thresh
+    after_max = np.cumsum(np.ones_like(isi_ratio)) >= max_ind
+    where_true = np.where(np.logical_and(inactivating, after_max))[0]
+
+    # Return current and pulse number where inactivation occurs
+    if len(where_true) > 0:
+        inact_pulse_num = where_true[0]
+        inact_current = stim_currents[inact_pulse_num]
+    else:
+        inact_pulse_num = np.nan
+        inact_current = stim_currents[-1] + 0.1
+
+    return inact_current, inact_pulse_num
 
 
 
