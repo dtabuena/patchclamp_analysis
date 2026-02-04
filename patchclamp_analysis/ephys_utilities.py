@@ -194,3 +194,7 @@ def movmean(x, n=3):
 
 def rms_noise(x):
     return np.sqrt(    np.sum((x-x.mean())**2)/len(x)    )  
+
+def mono_exp(time, peak, tau, ss):
+    'A single exponential decay function'
+    return (peak * np.exp(-time / (tau)) + ss)
