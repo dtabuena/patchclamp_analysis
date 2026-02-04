@@ -66,6 +66,16 @@ def spikes_per_stim(abf,spike_args,mode='count', to_plot=0):
 
 
 
+def check_inactivation( time, trace, is_stim, sample_rate, dVds, inds, mean_spike_rate, to_plot=0 ):
+    time_ms = time*1000
+    sum_isi = None
+    rel_firing_duration = None
+    if len(inds)>0:
+        stim_time = time_ms[np.where(is_stim)[0][0]]
+        firing_duration = time[inds[-1]]
+        rel_firing_duration = firing_duration /(np.max(time[is_stim]*1000)-stim_time)
+    return rel_firing_duration
+
 
 def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode='count',sanity_check=True,to_plot=0):
     '''
