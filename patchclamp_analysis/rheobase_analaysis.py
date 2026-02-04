@@ -6,8 +6,6 @@ import os
 from patchclamp_analysis.ephys_utilities import (
     protocol_baseline_and_stim,
     find_spike_in_trace,
-    check_inactivation,
-    mean_inst_firing_rate,
     spikes_per_stim,
 )
 
