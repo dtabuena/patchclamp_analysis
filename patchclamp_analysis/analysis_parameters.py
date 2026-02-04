@@ -7,7 +7,6 @@ def init_func_arg_dicts():
     spike_args_rheo ={'spike_thresh':15, 'high_dv_thresh': 30,'low_dv_thresh': -15,'window_ms': 2}
 
 
-
     func_dict['VC - 3min GapFree']= rmp_analyzer
     arg_dict['VC - 3min GapFree'] = [True] # [to_plot?]
     func_dict['I0 - 3min GapFree']= rmp_analyzer
