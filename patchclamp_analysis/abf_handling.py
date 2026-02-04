@@ -1,3 +1,9 @@
+import numpy as np
+import os
+
+from patchclamp_analysis.ephys_utilities import movmean, rms_noise
+
+
 def get_sub_files(rootdir):
     'Recursively search subfolders and return a list of all files'
     file_list =[]
@@ -34,7 +40,27 @@ def qc_sweep(sweepX,sweepC,sweepY,command_offset,is_IC,is_VC,sampleRate,
         QC_values['I_leak'] = baseline
     
     QC_checks['V_hold'] = abs(QC_values['V_hold'] - -70)< Vhold_range
-    QC_checks['I_leak'] = QC_values['I_leak']len(LF_noise_idx): LF_noise_idx = np.random.choice(LF_noise_idx, size=int(0.1*sampleRate))
+    QC_checks['I_leak'] = QC_values['I_leak']<max_leak
+
+
+    
+    HF_noise_idx = ss_no_stim_idx[:int(0.0015*sampleRate)]
+    HF_noise_signal = sweepY[ HF_noise_idx ] 
+    HF_noise = rms_noise(HF_noise_signal)     
+    
+    QC_checks['HF_noise'] = HF_noise<max_high_freq_noise
+    QC_values['HF_noise'] = HF_noise
+    
+    LF_noise_idx = ss_no_stim_idx[-int(0.1*sampleRate):] 
+    if int(0.1*sampleRate)>len(LF_noise_idx):
+        LF_noise_idx = np.random.choice(LF_noise_idx, size=int(0.1*sampleRate))
     LF_noise_signal = sweepY[ LF_noise_idx ] 
     LF_noise = rms_noise(LF_noise_signal)
-    QC_checks['LF_noise'] = LF_noise
+    QC_checks['LF_noise'] = LF_noise<max_low_freq_noise
+    QC_values['LF_noise'] = LF_noise
+
+    HF_noise_time = sweepX[HF_noise_idx]
+    LF_noise_time = sweepX[LF_noise_idx]
+    LF_noise_time = np.sort(np.array(list(set(LF_noise_time))))
+
+    return QC_checks, QC_values, [HF_noise_time, LF_noise_time]
