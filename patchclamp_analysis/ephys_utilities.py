@@ -183,3 +183,6 @@ def initial_inst_firing_rate(sweepX,inds_list,num_spikes=2,to_plot=False):
 def movmean(x, n=3):
     """Simple moving-average function to smooth the signal."""
     return np.convolve(x, np.ones(n)/n, mode='same')
+
+def rms_noise(x):
+    return np.sqrt(    np.sum((x-x.mean())**2)/len(x)    )  
