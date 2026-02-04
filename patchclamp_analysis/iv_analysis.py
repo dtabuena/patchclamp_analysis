@@ -1,4 +1,9 @@
-from patchclamp_analysis.ephys_utilities import movmean
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+from patchclamp_analysis.ephys_utilities import protocol_baseline_and_stim
+
 
 
 def IV_analyzer_v4(abf, Na_window=[.2, 3], K_window=[40,50], to_plot=True, leak_threshold=-200,
