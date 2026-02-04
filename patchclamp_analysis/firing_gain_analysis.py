@@ -84,6 +84,71 @@ def gain_analyzer_v2(abf,spike_args =  {'spike_thresh':10, 'high_dv_thresh': 25,
 
     return results
 
+
+def spikes_per_stim(abf,spike_args,mode='count', to_plot=0):
+    '''Loops through sweeps of an abf to find spikes'''
+    # init
+    stim_currents = []
+    spike_rates = []
+    spike_counts = []
+    v_before_spike1 = []
+    v_before_stim = []
+    fire_dur = []
+    inds_list=[]
+    # get sweep info
+    is_base, is_stim = protocol_baseline_and_stim(abf)
+
+    # get spike per sweep
+    for s in abf.sweepList:
+        abf.setSweep(s)
+        dVds, over_thresh, inds, mean_spike_rate = find_spike_in_trace(abf.sweepY,abf.sampleRate,spike_args,is_stim=is_stim,mode='count',to_plot=to_plot)
+        rel_firing_duration = check_inactivation( abf.sweepX, abf.sweepY, is_stim, abf.sampleRate, dVds, inds, mean_spike_rate, to_plot=0 )
+        # plot id'd spikes
+        if to_plot>1:
+            fig, axs = plt.subplots(1)
+            axs.scatter(abf.sweepX[inds],abf.sweepY[inds],color='red',zorder=2)
+            axs.plot(abf.sweepX ,abf.sweepY,zorder=1)
+            plt.show()
+        # calc multi sweep params
+        stim_level = np.median(abf.sweepC[is_stim])
+        stim_currents.append(stim_level)
+        spike_rates.append(mean_spike_rate)
+        spike_counts.append(len(inds))
+        is_prestim = np.equal(np.cumsum( np.diff(is_base,prepend=1)),0)
+        v_before_stim.append( np.mean(abf.sweepY[is_prestim] ))
+        fire_dur.append(rel_firing_duration)
+        inds_list.append(inds)
+        if len(inds)>0:
+            v_before_spike1.append(abf.sweepY[inds[0]])
+        else:
+            v_before_spike1.append(np.nan)
+
+
+    pulse_dur = len(is_stim[is_stim])/abf.sampleRate
+    try:
+        max_fire = np.max(spike_counts)
+        ind_max = np.where(spike_counts==max_fire)[0][0]
+        fire_dur_max = fire_dur[ind_max]
+    except: fire_dur_max = None
+
+
+    time_offest = abf.sweepX[is_stim][0]
+    spike_times = [abf.sweepX[il]-time_offest for il in inds_list]
+    isi_rates = mean_inst_firing_rate(spike_times)
+
+    results_dict={}
+    results_dict['stim_currents'] = np.array(stim_currents)
+    results_dict['spike_counts'] = np.array(spike_counts)
+    results_dict['spike_rates'] = np.array(spike_rates)
+    results_dict['v_before_spike1'] = np.array(v_before_spike1)
+    results_dict['v_before_stim'] = np.array(v_before_stim)
+    results_dict['fire_dur'] = np.array(fire_dur_max)
+    results_dict['isi_rates'] = np.array(isi_rates)
+    results_dict['spike_times'] = spike_times ## DO NOT MAKE ARRAY ?
+
+    return results_dict
+
+
 def adaption_analysis_v2(abf, spike_results, to_plot=False, plot_name='recording', figopt={'type':'jpg','dpi':300}):
     # Extract spike data from results
     spike_times = spike_results['spike_times']
