@@ -5,12 +5,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
-from patchclamp_analysis.ephys_utilities import movmean
-
-
-def mono_exp(time, peak, tau, ss):
-    'A single exponential decay function'
-    return (peak * np.exp(-time / (tau)) + ss)
+from patchclamp_analysis.ephys_utilities import movmean, mono_exp
 
 def membrane_analyzer(abf, to_plot=False, verbose=False,report_params=None):
 
