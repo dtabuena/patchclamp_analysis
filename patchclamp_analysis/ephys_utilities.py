@@ -1,3 +1,7 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
 def spikes_per_stim(abf,spike_args,mode='count', to_plot=0):
     '''Loops through sweeps of an abf to find spikes'''
     # init
@@ -96,7 +100,11 @@ def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode
         for i in old_inds:
             samp_window = window_ms/1000 * rate
             ind_range = np.arange(i-samp_window,i+samp_window).astype(int)
-            ind_range = ind_range[ind_rangehigh_dv_thresh and np.min(nearby_dVds) < low_dv_thresh:
+            ind_range = ind_range[ind_range<len(dVds)]
+            nearby_dVds = dVds[ind_range]
+            if False: print(i,'max', np.max(nearby_dVds))
+            if False: print(i,'min', np.min(nearby_dVds))
+            if np.max(nearby_dVds)>high_dv_thresh and np.min(nearby_dVds) < low_dv_thresh:
                 inds.append(i)
                 if False: print(inds)
     if to_plot>2:
