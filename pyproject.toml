@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=61.0"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "patchclamp_analysis"
@@ -12,5 +12,4 @@ dependencies = [
     "pyabf>=2.3,<3.0",
     "pandas>=1.5,<3.0",
 ]
-
 
