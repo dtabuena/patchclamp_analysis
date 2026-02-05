@@ -27,18 +27,18 @@ def gain_analyzer_v2(abf,spike_args =  {'spike_thresh':10, 'high_dv_thresh': 25,
     stim_currents = spike_results['stim_currents']
     spike_counts = spike_results['spike_counts']
     spike_rates = spike_results['spike_rates']
-    V_before_stim = spike_results['V_before_stim']
+    v_before_stim = spike_results['v_before_stim']
     fire_dur = spike_results['fire_dur']
     isi_rates = spike_results['isi_rates']
     spike_times = spike_results['spike_times']
 
 
-    Vh_ok = [i for i in range(len(V_before_stim)) if V_before_stim[i]>np.min(Vh_hilo)]
-    Vh_ok = [i for i in Vh_ok if V_before_stim[i]<np.max(Vh_hilo)]
+    Vh_ok = [i for i in range(len(v_before_stim)) if v_before_stim[i]>np.min(Vh_hilo)]
+    Vh_ok = [i for i in Vh_ok if v_before_stim[i]<np.max(Vh_hilo)]
 
     stim_currents = np.array([stim_currents[i] for i in Vh_ok])
     spike_counts = np.array([spike_counts[i] for i in Vh_ok])
-    V_before_stim = np.array([V_before_stim[i] for i in Vh_ok])
+    v_before_stim = np.array([v_before_stim[i] for i in Vh_ok])
     spike_rates = np.array([spike_rates[i] for i in Vh_ok])
     isi_rates = np.array([isi_rates[i] for i in Vh_ok])
 
@@ -71,7 +71,7 @@ def gain_analyzer_v2(abf,spike_args =  {'spike_thresh':10, 'high_dv_thresh': 25,
     results['Gain_R2']=if_fit['R2']
     results['Spike_Counts']=dict(zip(stim_currents, spike_counts))
     # results['Firing_Duration_%']=fire_dur
-    results['Gain_Vh']=V_before_stim
+    results['Gain_Vh']=v_before_stim
     results['V_stim']= calc_vm_stim(abf,is_stim,spike_counts,isi_rates,to_plot=False)
 
     adapt_res = adaption_analysis_v2(abf, spike_results, to_plot=to_plot>0,plot_name=plot_name,figopt=figopt)
