@@ -53,7 +53,7 @@ def rheobase_analyzer_V2(abf,
         else:
             first_spike_stim = first_spike_stim[0]
         results['Rheobase'] = stim_currents[first_spike_stim]
-        results['Vhold_spike'] = V_before_stim[first_spike_stim]
+        results['Vhold_spike'] = v_before_stim[first_spike_stim]
         results['AP_thresh'] = V_before_AP[first_spike_stim]
 
     if isinstance(first_spike_stim, (int, np.integer)):
