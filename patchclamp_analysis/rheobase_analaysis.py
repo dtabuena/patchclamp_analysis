@@ -25,13 +25,12 @@ def rheobase_analyzer_V2(abf,
         return results
     else:
         is_base, is_stim = protocol_baseline_and_stim(abf)
-        # stim_currents, spike_counts, spike_rates, V_before_AP,V_before_stim,_ ,_= spikes_per_stim_LEGACY(abf, spike_args,to_plot=to_plot)
         spike_results = spikes_per_stim(abf, spike_args,to_plot=to_plot)
         stim_currents = spike_results['stim_currents']
         spike_counts = spike_results['spike_counts']
         spike_rates = spike_results['spike_rates']
-        V_before_AP = spike_results['V_before_spike1']
-        V_before_stim = spike_results['V_before_stim']
+        v_before_AP = spike_results['v_before_spike1']
+        v_before_stim = spike_results['v_before_stim']
 
         single_spikes = spike_counts==1
         zero_spikes = spike_counts==0
