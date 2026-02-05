@@ -1,10 +1,10 @@
-from patchclamp_analysis.rmp_analyzer import rmp_analyzer
-from patchclamp_analysis.rheobase_analyzer import rheobase_analyzer_V2
-from patchclamp_analysis.gain_analyzer import gain_analyzer_v2
-from patchclamp_analysis.membrane_analyzer import membrane_analyzer
-from patchclamp_analysis.latencey_analyzer import latencey_analyzer
+from patchclamp_analysis.resting_potential_analysis import rmp_analyzer
+from patchclamp_analysis.rheobase_analaysis import rheobase_analyzer_V2
+from patchclamp_analysis.firing_gain_analysis import gain_analyzer_v2
+from patchclamp_analysis.capacitance_analysis import membrane_analyzer
+from patchclamp_analysis.spike_latency_analysis import latencey_analyzer
 from patchclamp_analysis.input_resistance_analyzer import input_resistance_analyzer
-from patchclamp_analysis.IV_analyzer import IV_analyzer_v4
+from patchclamp_analysis.iv_analysis import IV_analyzer_v4
 
 
 
