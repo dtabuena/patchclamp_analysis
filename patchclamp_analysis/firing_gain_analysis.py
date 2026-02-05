@@ -404,10 +404,3 @@ def calc_inactivation(isi_rates, spike_counts, stim_currents, inact_thresh=0.9):
 
 
 
-
-
-
-
-
-
-
