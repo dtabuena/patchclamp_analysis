@@ -39,12 +39,12 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs, redo_list=None):
                 config = analyzer_configs[protocol].copy()
                 analyzer_func = config.pop('func')
                 abf = pyabf.ABF(filepath)
-                try: 
-                    results = analyzer_func(abf, **config)
-                except:
-                    print(f'failed')
-                    problem_recs.append(filepath)
-                    results = {}
+                # try: 
+                results = analyzer_func(abf, **config)
+                # except:
+                print(f'failed')
+                problem_recs.append(filepath)
+                results = {}
             else:
                 print(f"  No analyzer for protocol: {protocol}")
                 results = {}
