@@ -5,7 +5,7 @@ import os
 def rmp_analyzer(abf,to_plot=False,figopt={'type':'jpg'}):
     results = {'Rmp_mV': np.nan}
     if 'mV' not in abf.adcUnits[0]:
-        return synaptic_analysis(synaptic_analysis(abf,to_plot))
+        return synaptic_analysis(abf,to_plot)
     abf.setSweep(0,0)
     command = abf.sweepC[:abf.sampleRate*3]
     vm = abf.sweepY[:abf.sampleRate*3]
