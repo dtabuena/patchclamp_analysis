@@ -5,7 +5,7 @@ import os
 def rmp_analyzer(abf,to_plot=False,figopt={'type':'jpg'}):
     results = {'Rmp_mV': np.nan}
     if 'mV' not in abf.adcUnits[0]:
-        return {'Rmp_mV': "VCLAMP_DO_PSCs"}
+        return synaptic_analysis(synaptic_analysis(abf,to_plot))
     abf.setSweep(0,0)
     command = abf.sweepC[:abf.sampleRate*3]
     vm = abf.sweepY[:abf.sampleRate*3]
@@ -27,3 +27,9 @@ def rmp_analyzer(abf,to_plot=False,figopt={'type':'jpg'}):
     if abs(mean_command)<15:
         results = {'Rmp_mV': mean_rmp,'command':mean_command}
     return results
+
+def synaptic_analysis(abf,to_plot=False):
+    # Not yet implemented
+    results = {'synaptic': np.nan()}
+    retrun results
+    
