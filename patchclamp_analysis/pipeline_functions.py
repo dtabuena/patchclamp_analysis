@@ -5,8 +5,7 @@ import h5py
 import pyabf
 from tqdm import tqdm
 
-
-def analysis_iterator_h5(h5_data_loc, analyzer_configs):
+def analysis_iterator_h5(h5_data_loc, analyzer_configs, subset, redo_list=None):
     """
     Loop through recording groups in single_files, run analysis, save results to groups.
 
@@ -14,12 +13,20 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs):
     - h5_data_loc: path to HDF5 file
     - analyzer_configs: dict mapping protocol names to analyzer functions
                         e.g., {'IV': {'func': analyze_iv, 'arg1': val1}, ...}
+    - subset: subset parameter
+    - redo_list: optional list of recording names to process. If None, process all.
     """
     problem_recs = []
     with h5py.File(h5_data_loc, 'a') as f:
         abf_files = f['abf_files']
 
-        for base_name in tqdm(list(abf_files.keys()), desc="Processing recordings"):
+        # Determine which recordings to process
+        if redo_list is not None:
+            keys_to_process = [k for k in abf_files.keys() if k in redo_list]
+        else:
+            keys_to_process = list(abf_files.keys())
+
+        for base_name in tqdm(keys_to_process, desc="Processing recordings"):
             grp = abf_files[base_name]
 
             # Get metadata from attributes
