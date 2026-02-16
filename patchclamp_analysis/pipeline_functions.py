@@ -72,7 +72,7 @@ def build_analysis_h5(dataset_info, overwrite=False):
             single_files_group = hf['abf_files']
         else:
             single_files_group = hf.create_group('abf_files')
-        for file_id, file_name in enumerate(file_list):
+        for file_id, file_name in tqdm(enumerate(file_list)):
             file_metadata = dict()
             base_name = os.path.basename(file_name)
             file_metadata['recording_name'] = base_name
