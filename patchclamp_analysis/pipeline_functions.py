@@ -15,7 +15,7 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs):
     - analyzer_configs: dict mapping protocol names to analyzer functions
                         e.g., {'IV': {'func': analyze_iv, 'arg1': val1}, ...}
     """
-
+    problem_recs = []
     with h5py.File(h5_data_loc, 'a') as f:
         abf_files = f['abf_files']
 
@@ -33,7 +33,11 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs):
                 config = analyzer_configs[protocol].copy()
                 analyzer_func = config.pop('func')
                 abf = pyabf.ABF(filepath)
-                results = analyzer_func(abf, **config)
+                try: 
+                    results = analyzer_func(abf, **config)
+                except:
+                    print(f'failed')
+                    problem_recs.append(filepath)
             else:
                 print(f"  No analyzer for protocol: {protocol}")
                 results = {}
@@ -55,7 +59,7 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs):
                     # Scalar or array -> dataset
                     grp.create_dataset(key, data=val)
 
-    return None
+    return problem_recs
 
 
 def build_analysis_h5(dataset_info, overwrite=False):
