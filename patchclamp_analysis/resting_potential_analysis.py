@@ -31,5 +31,5 @@ def rmp_analyzer(abf,to_plot=False,figopt={'type':'jpg'}):
 def synaptic_analysis(abf,to_plot=False):
     # Not yet implemented
     results = {'synaptic': np.nan()}
-    retrun results
+    return results
     
