@@ -58,7 +58,7 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs):
     return None
 
 
-def build_analysis_h5(dataset_info):
+def build_analysis_h5(dataset_info,overwrite=False):
     data_name = dataset_info['data_name']
     data_source = dataset_info['data_source']
     file_naming_scheme = dataset_info['file_naming_scheme']
@@ -86,6 +86,11 @@ def build_analysis_h5(dataset_info):
             file_metadata['abf_timestamp'] = str(abf.abfDateTime)
 
             # Create group for this recording
+            if base_name in hf:
+                if overwrite:
+                    del hf[base_name)
+                else
+                    continue
             rec_group = single_files_group.create_group(base_name)
 
             # Add ALL metadata as attributes to the group
