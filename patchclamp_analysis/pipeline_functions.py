@@ -67,18 +67,17 @@ def build_analysis_h5(dataset_info, overwrite=False):
                  for dirpath, dirnames, filenames in os.walk(data_source)
                  for filename in filenames
                  if filename.endswith('.abf')]
-    with h5py.File(h5_filename, 'w') as hf:
-        single_files_group = hf.create_group('abf_files')
+    with h5py.File(h5_filename, 'a') as hf:
+        if 'abf_files' in hf:
+            single_files_group = hf['abf_files']
+        else:
+            single_files_group = hf.create_group('abf_files')
         for file_id, file_name in enumerate(file_list):
             file_metadata = dict()
             base_name = os.path.basename(file_name)
             file_metadata['recording_name'] = base_name
             parsed_name = parse_name(base_name, file_naming_scheme)
             file_metadata.update(parsed_name)
-            abf = pyabf.ABF(file_name)
-            file_metadata['protocol'] = abf.protocol
-            file_metadata['channelList'] = str(abf.channelList)
-            file_metadata['abf_timestamp'] = str(abf.abfDateTime)
             # Check if this recording already exists in the group
             if base_name in single_files_group:
                 if overwrite:
@@ -86,8 +85,11 @@ def build_analysis_h5(dataset_info, overwrite=False):
                 else:
                     print(f'{base_name} already exists, skipping')
                     continue
+            abf = pyabf.ABF(file_name)
+            file_metadata['protocol'] = abf.protocol
+            file_metadata['channelList'] = str(abf.channelList)
+            file_metadata['abf_timestamp'] = str(abf.abfDateTime)
             rec_group = single_files_group.create_group(base_name)
-            # Add ALL metadata as attributes to the group
             rec_group.attrs['file_id'] = file_id
             rec_group.attrs['filepath'] = str(file_name)
             for key, value in file_metadata.items():
