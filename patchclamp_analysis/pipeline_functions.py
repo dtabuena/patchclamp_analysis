@@ -58,47 +58,40 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs):
     return None
 
 
-def build_analysis_h5(dataset_info,overwrite=False):
+def build_analysis_h5(dataset_info, overwrite=False):
     data_name = dataset_info['data_name']
     data_source = dataset_info['data_source']
     file_naming_scheme = dataset_info['file_naming_scheme']
-
     h5_filename = f'{data_name}_analysis_recs.h5'
-
     file_list = [os.path.join(dirpath, filename)
-             for dirpath, dirnames, filenames in os.walk(data_source)
-             for filename in filenames
-             if filename.endswith('.abf')]
-
+                 for dirpath, dirnames, filenames in os.walk(data_source)
+                 for filename in filenames
+                 if filename.endswith('.abf')]
     with h5py.File(h5_filename, 'w') as hf:
         single_files_group = hf.create_group('abf_files')
-
         for file_id, file_name in enumerate(file_list):
             file_metadata = dict()
             base_name = os.path.basename(file_name)
             file_metadata['recording_name'] = base_name
             parsed_name = parse_name(base_name, file_naming_scheme)
             file_metadata.update(parsed_name)
-
             abf = pyabf.ABF(file_name)
             file_metadata['protocol'] = abf.protocol
             file_metadata['channelList'] = str(abf.channelList)
             file_metadata['abf_timestamp'] = str(abf.abfDateTime)
-
-            # Create group for this recording
-            if base_name in hf:
+            # Check if this recording already exists in the group
+            if base_name in single_files_group:
                 if overwrite:
-                    del hf[base_name)
-                else
+                    del single_files_group[base_name]
+                else:
+                    print(f'{base_name} already exists, skipping')
                     continue
             rec_group = single_files_group.create_group(base_name)
-
             # Add ALL metadata as attributes to the group
             rec_group.attrs['file_id'] = file_id
             rec_group.attrs['filepath'] = str(file_name)
             for key, value in file_metadata.items():
                 rec_group.attrs[key] = value
-
     print(f"Saved metadata for {len(file_list)} files to {h5_filename}")
     return h5_filename
 
