@@ -31,6 +31,6 @@ def rmp_analyzer(abf,to_plot=False,figopt={'type':'jpg'}):
 
 def synaptic_analysis(abf,to_plot=False):
     # Not yet implemented
-    results = {'synaptic': np.nan}
+    results = {'Rmp_mV':np.nan,'synaptic': np.nan}
     return results
     
