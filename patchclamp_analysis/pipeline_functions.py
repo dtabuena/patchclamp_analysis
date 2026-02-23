@@ -491,7 +491,7 @@ def qc_check_cell(hf_cell, qc_criteria):
 
     return results
 
-def replace_failed_recs(cell_h5_loc, cell_QC_h5_loc=None, verbose=True):
+def replace_failed_recs(cell_h5_loc, qc_criteria,  cell_QC_h5_loc=None, verbose=True):
     if cell_QC_h5_loc is None:
         cell_QC_h5_loc = cell_h5_loc.replace('cells','cells_QC')
     with h5py.File(cell_h5_loc, 'r') as hf_in, h5py.File(cell_QC_h5_loc, 'w') as hf_out:
