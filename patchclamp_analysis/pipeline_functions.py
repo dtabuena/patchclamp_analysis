@@ -444,3 +444,108 @@ def write_dict_to_excel(result_dfs, filename):
     print(f"Wrote {len(result_dfs)} sheets to {filename}")
     print(os.getcwd())
     return None
+
+
+def strip_alternate_suffix(data_name):
+    """Remove trailing _1, _2 etc. but NOT _10.0 or _160.0 style suffixes."""
+    return re.sub(r'_(\d+)$', '', data_name)
+
+
+def qc_check_cell(hf_cell, qc_criteria):
+    """Run QC on a single cell. Groups alternates by base parameter."""
+    results = {}
+    for data_name in hf_cell:
+        base_name = strip_alternate_suffix(data_name)
+
+        if base_name not in qc_criteria:
+            continue
+        bounds = qc_criteria.get(base_name)
+        if bounds is None:
+            continue
+
+        data = hf_cell[data_name][()]
+        if np.ndim(data) != 0:
+            continue
+
+        val = float(data)
+        if np.isnan(val):
+            status = ('FAIL', 'nan')
+        elif val < bounds[0] or val > bounds[1]:
+            status = ('FAIL', f'{val:.4f} outside [{bounds[0]}, {bounds[1]}]')
+        else:
+            status = ('pass', f'{val:.4f}')
+
+        if base_name not in results:
+            results[base_name] = {}
+        results[base_name][data_name] = status
+
+    # Add any_pass flag and identify best replacement
+    for base_name, entries in results.items():
+        passes = {k: v for k, v in entries.items() if v[0] == 'pass'}
+        entries['any_pass'] = len(passes) > 0
+        if base_name in entries and entries[base_name][0] == 'FAIL' and passes:
+            replacement = [k for k in passes if k != base_name]
+            entries['replace_with'] = replacement[0] if replacement else None
+        else:
+            entries['replace_with'] = None
+
+    return results
+
+def replace_failed_recs(cell_h5_loc, cell_QC_h5_loc=None, verbose=True):
+    if cell_QC_h5_loc is None:
+        cell_QC_h5_loc = cell_h5_loc.replace('cells','cells_QC')
+    with h5py.File(cell_h5_loc, 'r') as hf_in, h5py.File(cell_QC_h5_loc, 'w') as hf_out:
+        for cell_name in hf_in:
+            cell_in = hf_in[cell_name]
+            cell_out = hf_out.create_group(cell_name)
+
+            # Copy group attributes
+            for attr_name, attr_val in cell_in.attrs.items():
+                cell_out.attrs[attr_name] = attr_val
+
+            qc_results = qc_check_cell(cell_in, qc_criteria)
+
+            # Build lookup of which base names need replacement
+            replacements = {}
+            for base_name, entries in qc_results.items():
+                if entries.get('replace_with'):
+                    replacements[base_name] = entries['replace_with']
+
+            for data_name in cell_in:
+                base_name = strip_alternate_suffix(data_name)
+
+                # Skip alternates - we only write base names
+                if data_name != base_name:
+                    continue
+
+                # Use replacement value if available, otherwise keep original
+                source_name = replacements.get(base_name, base_name)
+                ds = cell_out.create_dataset(data_name, data=cell_in[source_name][()])
+                ds.attrs['source'] = source_name
+                if base_name in qc_results:
+                    ds.attrs['qc_pass'] = qc_results[base_name].get('any_pass', True)
+                else:
+                    ds.attrs['qc_pass'] = True
+
+            if len(replacements) > 0 and verbose:
+                print(f'{cell_name}: {len(replacements)} replacements')
+    print(cell_QC_h5_loc)
+    return cell_QC_h5_loc
+
+
+def assign_age_bin(cell_h5_loc, bin_month_dict={'7-9m': [7, 9], '17-21m': [17, 21]}):
+    with h5py.File(cell_h5_loc, 'a') as hf:
+        for g_name in hf:
+            g = hf[g_name]
+            group_age = g.attrs['age']
+            days = int(group_age.replace('P', ''))
+            months = int(days/(365/12))
+            age_bin = 'out_of_range'
+            for bin_name, (low, high) in bin_month_dict.items():
+                if low <= months <= high:
+                    age_bin = bin_name
+                    break
+            g.attrs['age_bin'] = age_bin
+            if age_bin == 'out_of_range':
+                print(months,g.attrs['cell_id'])
+    return None
