@@ -4,6 +4,7 @@ import pandas as pd
 import h5py
 import pyabf
 from tqdm import tqdm
+import re
 
 def analysis_iterator_h5(h5_data_loc, analyzer_configs, redo_list=None):
     """
