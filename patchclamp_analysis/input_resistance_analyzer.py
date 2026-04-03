@@ -10,7 +10,7 @@ def input_resistance_analyzer(abf, dVm_limits = [-30, 10],to_plot=False,figopt={
 
     results={}
     if to_plot:
-        fig,ax = plt.subplots(1,2,figsize=(4,2.5))
+        fig,ax = plt.subplots(1,2,figsize=(3,1.5))
 
     stim_currents = []
     ss_voltage = []
