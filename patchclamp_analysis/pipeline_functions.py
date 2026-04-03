@@ -70,6 +70,23 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs, redo_list=None):
     return problem_recs
 
 
+def parse_name(base_name, scheme):
+    parsed_name = dict()
+    split_words = base_name.split('_')
+    if len(split_words) < len(scheme):
+        parsed_name['parse_error'] = (
+            f'Expected {len(scheme)} underscore-separated fields, '
+            f'got {len(split_words)} in: {base_name}'
+        )
+        return parsed_name
+    re_code = ['_' + split_words[i] for i in range(len(scheme))]
+    re_code = ''.join(re_code)[1:]
+    parsed_name['cell_id'] = re_code
+    for ci in range(len(scheme)):
+        parsed_name[scheme[ci]] = split_words[ci]
+    return parsed_name
+
+
 def build_analysis_h5(dataset_info, overwrite=False):
     data_name = dataset_info['data_name']
     data_source = dataset_info['data_source']
@@ -79,6 +96,7 @@ def build_analysis_h5(dataset_info, overwrite=False):
                  for dirpath, dirnames, filenames in os.walk(data_source)
                  for filename in filenames
                  if filename.endswith('.abf')]
+    flagged_files = []
     with h5py.File(h5_filename, 'a') as hf:
         if 'abf_files' in hf:
             single_files_group = hf['abf_files']
@@ -89,8 +107,11 @@ def build_analysis_h5(dataset_info, overwrite=False):
             base_name = os.path.basename(file_name)
             file_metadata['recording_name'] = base_name
             parsed_name = parse_name(base_name, file_naming_scheme)
+            if 'parse_error' in parsed_name:
+                flagged_files.append({'file': file_name, 'reason': parsed_name['parse_error']})
+                print(f'FLAGGED {base_name}: {parsed_name["parse_error"]}')
+                continue
             file_metadata.update(parsed_name)
-            # Check if this recording already exists in the group
             if base_name in single_files_group:
                 if overwrite:
                     del single_files_group[base_name]
@@ -106,18 +127,12 @@ def build_analysis_h5(dataset_info, overwrite=False):
             rec_group.attrs['filepath'] = str(file_name)
             for key, value in file_metadata.items():
                 rec_group.attrs[key] = value
-    print(f"Saved metadata for {len(file_list)} files to {h5_filename}")
-    return h5_filename
-
-def parse_name(base_name,scheme):
-    parsed_name=dict()
-    split_words = base_name.split('_')
-    re_code = ['_'+split_words[i] for i in range(len(scheme))]
-    re_code = ''.join(re_code)[1:]
-    parsed_name['cell_id']= re_code
-    for ci in range(len(scheme)):
-        parsed_name[scheme[ci]] = split_words[ci]
-    return parsed_name
+    print(f'Saved metadata for {len(file_list) - len(flagged_files)} files to {h5_filename}')
+    if flagged_files:
+        print(f'{len(flagged_files)} file(s) flagged and skipped:')
+        for entry in flagged_files:
+            print(f'  {entry["file"]}: {entry["reason"]}')
+    return h5_filename, flagged_files
 
 
 
