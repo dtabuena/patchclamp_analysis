@@ -10,7 +10,7 @@ def input_resistance_analyzer(abf, dVm_limits = [-30, 10],to_plot=False,figopt={
 
     results={}
     if to_plot:
-        fig,ax = plt.subplots(1,2,figsize=(3,1.5))
+        fig,ax = plt.subplots(1,2,figsize=(2,1))
 
     stim_currents = []
     ss_voltage = []
@@ -84,7 +84,7 @@ def sweep_VIR(trace,rate,is_stim = None, window_t=0.100):
     return delta_v, med_base_v, med_stim_v
 
 def measure_sag(abf,ss_window_ms=50,Ih_val = -75):
-    fig,ax = plt.subplots(1,2,figsize=(2,1))
+    fig,ax = plt.subplots(1,2,(2,1))
     peaks=[]
     steady_states=[]
     is_base, is_stim = protocol_baseline_and_stim(abf)
