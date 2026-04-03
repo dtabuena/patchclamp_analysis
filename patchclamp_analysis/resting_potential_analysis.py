@@ -13,7 +13,7 @@ def rmp_analyzer(abf,to_plot=False,figopt={'type':'jpg'}):
     abf.setSweep(0,1)
     command_ch2 = abf.sweepY[:abf.sampleRate*3]
     if to_plot:
-        fig, ax = plt.subplots(1,2,figsize=(3,1.5))
+        fig, ax = plt.subplots(1,2,figsize=(2,1))
         ax[0].hist(command,20)
         ax[0].hist(command_ch2,20)
         ax[0].set_xlabel('Command Current (pA)')
