@@ -60,7 +60,7 @@ def analyze_ramp_sweep(abf,spike_args,to_plot=False,figopt={'type':'jpg','dpi':3
 
     if to_plot:
         # plt.scatter(sweepX,dVds,color='k')
-        fig, axs, =plt.subplots(1,2,figsize=[4,1],width_ratios=[1, 8])
+        fig, axs, =plt.subplots(1,2,figsize=[4,1],width_ratios=[1, 1])
         for a in axs:
             a.plot(sweepX,sweepY,color='k')
             a.scatter(sweepX[inds],sweepY[inds],color='r' )
