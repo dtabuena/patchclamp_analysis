@@ -92,7 +92,7 @@ def fit_Icapacitave_mean_current(abf, to_plot=False, verbose=False):
     mem_params_df = pd.DataFrame(None,index=pulse_set,columns=['>90%','Ib','Iss','Ip','Ra','Rm','tau','Cmq','Cmf','Cmqf'])
 
     if to_plot:
-        fig, axs = plt.subplots(1,len(pulse_set),figsize=[4, 1.5])
+        fig, axs = plt.subplots(1,len(pulse_set),figsize=[3, 1.25])
         # fig.suptitle(abf.abfFilePath)
         if verbose: print(abf.abfFilePath)
         if str(type(axs)) == "<class 'matplotlib.axes._subplots.AxesSubplot'>":
