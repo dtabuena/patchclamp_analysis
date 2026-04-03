@@ -245,7 +245,7 @@ def restratify_h5_by_attribute(input_file, output_file, grouping_attr):
                         target_name = dataset_name
                         counter = 1
                         while target_name in new_group:
-                            target_name = f'{dataset_name}_{counter}'
+                            target_name = f'{dataset_name}_rep{counter}'
                             counter += 1
                         f_in.copy(f'abf_files/{orig_name}/{dataset_name}', new_group, name=target_name)
 
