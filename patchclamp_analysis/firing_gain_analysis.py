@@ -239,7 +239,7 @@ def ap_phase(abf, sweep, spike_times, up_sample=True, window_ms=[-1, 8]):
     num_colors = len(spike_inds)
     viridis_colors = mpl.cm.viridis(np.linspace(0, 1, num_colors))
 
-    phase_fig, ax = plt.subplots(figsize=(1.5, 1.5))
+    phase_fig, ax = plt.subplots(figsize=(1.25, 1.25))
     ax.set_prop_cycle(mpl.cycler('color', viridis_colors))
     ax.plot(v_mat.T, dv_mat.T)
     ax.grid()
