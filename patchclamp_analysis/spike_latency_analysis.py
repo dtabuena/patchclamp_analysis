@@ -64,7 +64,7 @@ def analyze_ramp_sweep(abf,spike_args,to_plot=False,figopt={'type':'jpg','dpi':3
         for a in axs:
             a.plot(sweepX,sweepY,color='k')
             a.scatter(sweepX[inds],sweepY[inds],color='r' )
-        zoom_x_relativ = np.array([ 0.75, 1.5])
+        zoom_x_relativ = np.array([ 0.85, 1.25])
         zoom_x = zoom_x_relativ*(latencey/1000+sweepX[ramp_start_ind])
         axs[0].set_xlim(zoom_x)
         axs[1].set_xlim([.05,1.25])
