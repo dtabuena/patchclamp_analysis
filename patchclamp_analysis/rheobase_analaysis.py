@@ -70,7 +70,7 @@ def rheobase_analyzer_V2(abf,
         for s in abf.sweepList:
             abf.setSweep(s)
             ax.plot(abf.sweepX,abf.sweepY,label = str(stim_currents[s]) + ' pA')
-        ax.legend(loc='center left', bbox_to_anchor=(1,0.25)) #,
+        ax.legend(loc='upper left', bbox_to_anchor=(1.1,1)) #,
         plt.show()
         plt.tight_layout()
         rheo_fig.savefig( 'Saved_Figs/Rheobase/Rheobase' + '_' + abf.abfID +'.'+figopt['type'],dpi=figopt['dpi'])
@@ -113,6 +113,7 @@ def single_ap_stats(abf,spike_args,window_ms=[-3, 6.5],rise_fraction=0.90,to_plo
     v_max = np.max(spike_trace_y)
     v_max_ind = np.argmax(spike_trace_y)
     ap_amplitutude = v_max-ap_thresh
+    v_min = np.min(spike_trace_y)
 
     'APD 50'
     v_half = np.mean([v_max,ap_thresh])
@@ -151,19 +152,28 @@ def single_ap_stats(abf,spike_args,window_ms=[-3, 6.5],rise_fraction=0.90,to_plo
     dv_min = np.min(spike_trace_dvds)
 
     if to_plot:
-        fig, ax = plt.subplots(1,1,figsize=(1.5,1))
-        ax.plot(spike_trace_x,spike_trace_y,'k.-',zorder=-1)
-        ax.scatter(spike_trace_x[ap_thresh_ind],spike_trace_y[ap_thresh_ind],color='red')
-        ax.scatter(spike_trace_x[fast_after_hyperpol_ind],spike_trace_y[fast_after_hyperpol_ind],color='blue')
+        fig, axs = plt.subplots(1,2,figsize=(2,1))
+        for ax in axs:
+            ax.plot(spike_trace_x,spike_trace_y,'k.-',zorder=-1)
 
-        ax.plot([spike_trace_x[half_start],spike_trace_x[half_stop]],[v_half]*2,'blue')
+            ax.scatter(spike_trace_x[ap_thresh_ind],spike_trace_y[ap_thresh_ind],color='red')
+            ax.axhline(spike_trace_y[ap_thresh_ind],color='red',linewidth=.1)
 
-        ax.plot(spike_trace_x[rising_bool],spike_trace_y[rising_bool],color='magenta' )
-        ax.plot(spike_trace_x[falling_bool],spike_trace_y[falling_bool],color='cyan' )
+            ax.scatter(spike_trace_x[fast_after_hyperpol_ind],spike_trace_y[fast_after_hyperpol_ind],color='blue')
+            ax.axhline(spike_trace_y[fast_after_hyperpol_ind],color='blue',linewidth=.1)
 
-        ax.set_ylim(bottom=-80,top=np.max([v_max,40]))
+            ax.plot([spike_trace_x[half_start],spike_trace_x[half_stop]],[v_half]*2,'orange')
 
-        # axs[1].set_ylim(ap_thresh+fast_after_hyperpol-5,ap_thresh+5,)
+            ax.plot(spike_trace_x[rising_bool],spike_trace_y[rising_bool],color='magenta' )
+            ax.plot(spike_trace_x[falling_bool],spike_trace_y[falling_bool],color='cyan' )
+
+            ax.set_ylim(np.min([v_min*1.1]),top=np.max([v_max,40]))
+
+        buf = 1.2
+        axs[1].set_ylim([(ap_thresh+fast_after_hyperpol*buf),(ap_thresh-fast_after_hyperpol*buf/2)])
+        axs[1].set_yticks([ap_thresh,ap_thresh+fast_after_hyperpol])
+        plt.tight_layout()
+        
         os.makedirs('Saved_Figs/AP_Params/', exist_ok=True)
         fig.savefig( 'Saved_Figs/AP_Params/AP_Params_' + abf.abfID +'.png',dpi=300)
 
