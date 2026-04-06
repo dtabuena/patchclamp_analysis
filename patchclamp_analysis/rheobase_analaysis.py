@@ -54,7 +54,7 @@ def rheobase_analyzer_V2(abf,
             first_spike_stim = first_spike_stim[0]
         results['Rheobase'] = stim_currents[first_spike_stim]
         results['Vhold_spike'] = v_before_stim[first_spike_stim]
-        results['AP_thresh'] = v_before_AP[first_spike_stim]
+        # results['AP_thresh'] = v_before_AP[first_spike_stim]
 
     if isinstance(first_spike_stim, (int, np.integer)):
         abf.setSweep(first_spike_stim)
@@ -107,15 +107,15 @@ def single_ap_stats(abf,spike_args,window_ms=[-3, 6.5],rise_fraction=0.90,to_plo
     ## Stats on AP
     'AP threshhold'
     ap_thresh_ind = int(abs(window_ind[0]))
-    ap_thresh_us= spike_trace_y[ap_thresh_ind]
+    ap_thresh= spike_trace_y[ap_thresh_ind]
 
     'AP Max'
     v_max = np.max(spike_trace_y)
     v_max_ind = np.argmax(spike_trace_y)
-    ap_amplitutude = v_max-ap_thresh_us
+    ap_amplitutude = v_max-ap_thresh
 
     'APD 50'
-    v_half = np.mean([v_max,ap_thresh_us])
+    v_half = np.mean([v_max,ap_thresh])
     ap_above_half = spike_trace_y>=v_half
     bool_dif = np.diff(ap_above_half,prepend=0)
     half_start = np.where(bool_dif == 1)[0][0]
@@ -127,11 +127,11 @@ def single_ap_stats(abf,spike_args,window_ms=[-3, 6.5],rise_fraction=0.90,to_plo
     fahp_wind = np.arange(v_max_ind,len(spike_trace_y)-v_max_ind,dtype='int')
     fast_after_hyperpol = np.min(spike_trace_y[fahp_wind])
     fast_after_hyperpol_ind = np.argmin(spike_trace_y[fahp_wind])+v_max_ind
-    fast_after_hyperpol = fast_after_hyperpol - ap_thresh_us
+    fast_after_hyperpol = fast_after_hyperpol - ap_thresh
 
     'Rise and Fall time'
-    fractional_peak = ap_thresh_us+rise_fraction*(v_max-ap_thresh_us)
-    fractional_base = ap_thresh_us+(1-rise_fraction)*(v_max-ap_thresh_us)
+    fractional_peak = ap_thresh+rise_fraction*(v_max-ap_thresh)
+    fractional_base = ap_thresh+(1-rise_fraction)*(v_max-ap_thresh)
     rising_bool = np.array(spike_trace_y>=fractional_base) * np.array(spike_trace_y<=fractional_peak) * np.array(spike_trace_dvds>0)
     falling_bool = np.array(spike_trace_y>=fractional_base) * np.array(spike_trace_y<=fractional_peak) * np.array(spike_trace_dvds<0)
 
@@ -163,14 +163,14 @@ def single_ap_stats(abf,spike_args,window_ms=[-3, 6.5],rise_fraction=0.90,to_plo
 
         ax.set_ylim(bottom=-80,top=np.max([v_max,40]))
 
-        # axs[1].set_ylim(ap_thresh_us+fast_after_hyperpol-5,ap_thresh_us+5,)
+        # axs[1].set_ylim(ap_thresh+fast_after_hyperpol-5,ap_thresh+5,)
         os.makedirs('Saved_Figs/AP_Params/', exist_ok=True)
         fig.savefig( 'Saved_Figs/AP_Params/AP_Params_' + abf.abfID +'.png',dpi=300)
 
 
     ap_params = {'ap_amplitutude':ap_amplitutude,
                 'fast_after_hyperpol':fast_after_hyperpol,
-                'AP_thresh_US':ap_thresh_us,
+                'AP_thresh':ap_thresh,
                 'v_half':v_half,
                 'ap50_width_ms':ap50_width_ms,
                 'rise_time_ms':rise_time_ms,
