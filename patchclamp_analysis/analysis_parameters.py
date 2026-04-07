@@ -37,7 +37,7 @@ def init_func_arg_dicts_h5():
         'IC - Gain - D10pA': {
             'func': gain_analyzer_v2,
             'spike_args': spike_args_gain,
-            'to_plot': 1,
+            'to_plot': True,
             'max_fit_steps': 4,
             'rel_slope_cut': 0.7,
             'Vh_hilo': [-60, -80]
@@ -46,7 +46,7 @@ def init_func_arg_dicts_h5():
         'IC - Gain - D20pA': {
             'func': gain_analyzer_v2,
             'spike_args': spike_args_gain,
-            'to_plot': 1,
+            'to_plot': True,
             'max_fit_steps': 4,
             'rel_slope_cut': 0.7,
             'Vh_hilo': [-60, -80]
@@ -55,7 +55,7 @@ def init_func_arg_dicts_h5():
         'IC - Gain - D25pA': {
             'func': gain_analyzer_v2,
             'spike_args': spike_args_gain,
-            'to_plot': 1,
+            'to_plot': True,
             'max_fit_steps': 4,
             'rel_slope_cut': 0.7,
             'Vh_hilo': [-60, -80]
@@ -64,7 +64,7 @@ def init_func_arg_dicts_h5():
         'IC - Gain - D50pA': {
             'func': gain_analyzer_v2,
             'spike_args': spike_args_gain,
-            'to_plot': 1,
+            'to_plot': True,
             'max_fit_steps': 4,
             'rel_slope_cut': 0.7,
             'Vh_hilo': [-60, -80]
