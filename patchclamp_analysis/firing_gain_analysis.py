@@ -11,17 +11,17 @@ from patchclamp_analysis.ephys_utilities import (
     find_spike_in_trace,
     movmean,
 )
-def gain_analyzer_v2(abf, spike_args={'spike_thresh':10, 'high_dv_thresh': 25, 'low_dv_thresh': -5, 'window_ms': 2}, to_plot=0,
+
+def gain_analyzer_v2(abf, spike_args={'spike_thresh':10, 'high_dv_thresh': 25, 'low_dv_thresh': -5, 'window_ms': 2}, to_plot=False,
                      max_fit_steps=8, rel_slope_cut=.7, Vh_hilo=[-60,-80], figopt={'type':'jpg','dpi':300}, factor=2):
     '''Analyze Single ABF of increasing current injections for firing rate gain'''
-    '''to_plot scales from 0:2, no plot, plot just the final fitting, plot every sweep for spike detection'''
 
     results = {}
     if len(abf.sweepList) < 5: return results
 
     is_base, is_stim = protocol_baseline_and_stim(abf)
 
-    spike_results = spikes_per_stim(abf, spike_args, mode='count', to_plot=to_plot)
+    spike_results = spikes_per_stim(abf, spike_args, mode='count')
     stim_currents = spike_results['stim_currents']
     spike_counts  = spike_results['spike_counts']
     spike_rates   = spike_results['spike_rates']
@@ -45,11 +45,11 @@ def gain_analyzer_v2(abf, spike_args={'spike_thresh':10, 'high_dv_thresh': 25, '
 
     plot_name = abf.abfID
     if_fit = fit_firing_gain(stim_currents, spike_counts, spike_rates,
-                             abf, spike_times, isi_rates, to_plot=to_plot>0,
+                             abf, spike_times, isi_rates, to_plot=to_plot,
                              plot_name=plot_name, figopt=figopt,
                              max_fit_steps=max_fit_steps, rel_slope_cut=rel_slope_cut)
 
-    results['sAHP'] = calc_slow_afterhyp(abf, to_plot=to_plot>0, plot_name=plot_name)
+    results['sAHP'] = calc_slow_afterhyp(abf, to_plot=to_plot, plot_name=plot_name)
 
     sweep = np.argmax(spike_results['spike_counts'])
     phase_fig = ap_phase(abf, sweep, spike_results['spike_times'][sweep])
@@ -62,8 +62,7 @@ def gain_analyzer_v2(abf, spike_args={'spike_thresh':10, 'high_dv_thresh': 25, '
     results['V_stim']       = calc_vm_stim(abf, is_stim, spike_counts, isi_rates, to_plot=False)
 
     adapt_res = adaption_analysis_v3(spike_results, gain_rheo_sweep, factor=factor,
-                                     to_plot=to_plot>0, plot_name=plot_name, figopt=figopt)
-    
+                                     to_plot=to_plot, plot_name=plot_name, figopt=figopt)
     results.update(adapt_res)
 
     return results
