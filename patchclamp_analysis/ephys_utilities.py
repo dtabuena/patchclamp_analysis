@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def spikes_per_stim(abf,spike_args,mode='count', to_plot=0):
+def spikes_per_stim(abf,spike_args,mode='count'):
     '''Loops through sweeps of an abf to find spikes'''
     # init
     stim_currents = []
@@ -20,11 +20,6 @@ def spikes_per_stim(abf,spike_args,mode='count', to_plot=0):
         dVds, over_thresh, inds, mean_spike_rate = find_spike_in_trace(abf.sweepY,abf.sampleRate,spike_args,is_stim=is_stim,mode='count',to_plot=to_plot)
         rel_firing_duration = check_inactivation( abf.sweepX, abf.sweepY, is_stim, abf.sampleRate, dVds, inds, mean_spike_rate, to_plot=0 )
         # plot id'd spikes
-        if to_plot>1:
-            fig, axs = plt.subplots(1)
-            axs.scatter(abf.sweepX[inds],abf.sweepY[inds],color='red',zorder=2)
-            axs.plot(abf.sweepX ,abf.sweepY,zorder=1)
-            plt.show()
         # calc multi sweep params
         stim_level = np.median(abf.sweepC[is_stim])
         stim_currents.append(stim_level)
