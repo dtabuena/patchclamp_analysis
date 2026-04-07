@@ -1,4 +1,3 @@
-
 import numpy as np
 import scipy as sci
 import matplotlib as mpl
@@ -56,8 +55,9 @@ def gain_analyzer_v2(abf,spike_args =  {'spike_thresh':10, 'high_dv_thresh': 25,
         ADR_sAHP_ind = int(ADR_sAHP_ind*factor)
         ADR_sAHP_ind = np.min([ADR_sAHP_ind,max_fire_sweep])
 
-        try: results['sAHP']=calc_slow_afterhyp(abf,ADR_sAHP_ind)
-        except: results['sAHP']=np.nan
+        results['sAHP']=calc_slow_afterhyp(abf,to_plot=to_plot>0,plot_name=plot_name)
+        # try: results['sAHP']=calc_slow_afterhyp(abf,ADR_sAHP_ind)
+        # except: results['sAHP']=np.nan
         try: results['ADR'],_=calc_adapt_ratio(abf,ADR_sAHP_ind,spike_args,to_plot=False)
         except: results['ADR']=np.nan
 
@@ -142,7 +142,7 @@ def adaption_analysis_v2(abf, spike_results, to_plot=False, plot_name='recording
         ax_spike_count.set_ylabel('Spike Number (#)')
         ax_spike_count.set_xlim(-.4, 1)
         handles, labels = ax_spike_count.get_legend_handles_labels()
-        ax_spike_count.legend(handles[-4:], labels[-4:], loc='upper left', bbox_to_anchor=(0, 1))
+        ax_spike_count.legend(handles[-4:], labels[-4:], loc='upper left', bbox_to_anchor=(1.1, 1))
 
         ax_isi.set_xlabel('Spike Number (#)')
         ax_isi.set_ylabel('Inter-Spike Interval (ms)')
@@ -272,24 +272,6 @@ def calc_adapt_ratio(abf,ADR_sAHP_ind,spike_args,to_plot=False):
     return ADR, isi_series
 
 
-def calc_slow_afterhyp(abf,ADR_sAHP_ind):
-    '''Calculate the slow after hyperpolarization of a specified sweep'''
-
-    is_base, is_stim = protocol_baseline_and_stim(abf)
-    abf.setSweep(ADR_sAHP_ind)
-
-    stim_start_ind = np.min(np.where(is_stim))
-    stim_stop_ind = np.max(np.where(is_stim))
-
-    pre_stim_inds = np.where(is_base[0:stim_start_ind])
-    post_stim_inds = np.where(is_base[stim_stop_ind:])
-
-    base_Vm = abf.sweepY[pre_stim_inds]
-    after_Vm = abf.sweepY[post_stim_inds]
-    slow_afterhyp = np.mean(base_Vm) - np.min(after_Vm)
-    return slow_afterhyp
-
-
 
 
 
@@ -404,3 +386,56 @@ def calc_inactivation(isi_rates, spike_counts, stim_currents, inact_thresh=0.9):
 
 
 
+def calc_slow_afterhyp(abf,to_plot=False,plot_name=""):
+    '''Calculate the slow after hyperpolarization of a specified sweep'''
+
+    is_base, is_stim = protocol_baseline_and_stim(abf)
+
+    stim_start_ind = np.min(np.where(is_stim))
+    stim_stop_ind = np.max(np.where(is_stim))
+
+    pre_stim_mask = is_base & (np.arange(len(is_base)) < stim_start_ind)
+    post_stim_mask = is_base & (np.arange(len(is_base)) > stim_stop_ind)
+
+    if to_plot:
+        fig, ax = plt.subplots(1, 2, figsize=(3, 1))
+    cmap = plt.colormaps['Greys'] # Needed for the zip iterator even if not plotting
+    colors = cmap(np.linspace(0.3, 1.0, len(abf.sweepList))) # Needed for the zip iterator even if not plotting
+
+    slow_list = []
+    stim_level = []
+    for s, color in zip(abf.sweepList, colors):
+        abf.setSweep(s)
+        stim_level.append(abf.sweepC[stim_start_ind])
+        y_trace = abf.sweepY
+
+        base_Vm = np.mean(y_trace[pre_stim_mask])
+        sAHP_val = np.min(y_trace[post_stim_mask]) - base_Vm
+        slow_list.append(sAHP_val)
+
+        post_stim_global_inds = np.where(post_stim_mask)[0]
+        sAHP_local_ind = np.argmin(y_trace[post_stim_mask])
+        sAHP_global_ind = post_stim_global_inds[sAHP_local_ind]
+
+        y_plot = y_trace - y_trace[0]
+        if to_plot:
+            ax[0].plot(abf.sweepX, y_plot, color=color)
+            ax[0].scatter(abf.sweepX[sAHP_global_ind], y_plot[sAHP_global_ind], c='m', s=3, zorder=99)
+
+    slow_afterhyp = np.min(slow_list)
+    if to_plot:
+        ax[0].axhline(0, color='red', linestyle=':')
+        ax[0].set_ylim([np.min([slow_afterhyp * 1.1, -5]), +8])
+        ax[0].set_xlabel('Time (s)')
+        ax[0].set_ylabel('Rel Vm (mv)')
+        
+
+        ax[1].scatter(stim_level,slow_list,c=colors,s=3)
+        ax[1].set_ylim(np.min([-5,slow_afterhyp*1.1,2]))
+        ax[1].axhline(0, color='red', linestyle=':')
+        ax[1].set_ylabel('sAHP (mv)')
+        ax[1].set_xlabel('Stim (pA)')
+        plt.tight_layout()
+        plt.draw()
+        fig.savefig( 'Saved_Figs/Firing_Gain/Slow_After_Hyperpolarization'+'_' + plot_name+'.jpg')
+    return slow_afterhyp
