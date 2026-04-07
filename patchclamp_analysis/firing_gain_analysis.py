@@ -1,3 +1,4 @@
+
 import numpy as np
 import scipy as sci
 import matplotlib as mpl
@@ -10,174 +11,62 @@ from patchclamp_analysis.ephys_utilities import (
     find_spike_in_trace,
     movmean,
 )
-
-
-def gain_analyzer_v2(abf,spike_args =  {'spike_thresh':10, 'high_dv_thresh': 25,'low_dv_thresh': -5,'window_ms': 2}, to_plot = 0,
-                  max_fit_steps=8,rel_slope_cut=.7,Vh_hilo = [-60,-80],figopt={'type':'jpg','dpi':300},factor=2):
+def gain_analyzer_v2(abf, spike_args={'spike_thresh':10, 'high_dv_thresh': 25, 'low_dv_thresh': -5, 'window_ms': 2}, to_plot=0,
+                     max_fit_steps=8, rel_slope_cut=.7, Vh_hilo=[-60,-80], figopt={'type':'jpg','dpi':300}, factor=2):
     '''Analyze Single ABF of increasing current injections for firing rate gain'''
     '''to_plot scales from 0:2, no plot, plot just the final fitting, plot every sweep for spike detection'''
 
-    results= {} # init results dict
-    if len(abf.sweepList)<5: return results # not enough sweeps to analyze
+    results = {}
+    if len(abf.sweepList) < 5: return results
 
-    is_base, is_stim = protocol_baseline_and_stim(abf) # find base lines and stims
+    is_base, is_stim = protocol_baseline_and_stim(abf)
 
-    spike_results= spikes_per_stim(abf,spike_args, mode='count', to_plot=to_plot)
+    spike_results = spikes_per_stim(abf, spike_args, mode='count', to_plot=to_plot)
     stim_currents = spike_results['stim_currents']
-    spike_counts = spike_results['spike_counts']
-    spike_rates = spike_results['spike_rates']
+    spike_counts  = spike_results['spike_counts']
+    spike_rates   = spike_results['spike_rates']
     v_before_stim = spike_results['v_before_stim']
-    fire_dur = spike_results['fire_dur']
-    isi_rates = spike_results['isi_rates']
-    spike_times = spike_results['spike_times']
+    isi_rates     = spike_results['isi_rates']
+    spike_times   = spike_results['spike_times']
 
-
-    Vh_ok = [i for i in range(len(v_before_stim)) if v_before_stim[i]>np.min(Vh_hilo)]
-    Vh_ok = [i for i in Vh_ok if v_before_stim[i]<np.max(Vh_hilo)]
+    Vh_ok = [i for i in range(len(v_before_stim)) if v_before_stim[i] > np.min(Vh_hilo)]
+    Vh_ok = [i for i in Vh_ok if v_before_stim[i] < np.max(Vh_hilo)]
 
     stim_currents = np.array([stim_currents[i] for i in Vh_ok])
-    spike_counts = np.array([spike_counts[i] for i in Vh_ok])
+    spike_counts  = np.array([spike_counts[i] for i in Vh_ok])
     v_before_stim = np.array([v_before_stim[i] for i in Vh_ok])
-    spike_rates = np.array([spike_rates[i] for i in Vh_ok])
-    isi_rates = np.array([isi_rates[i] for i in Vh_ok])
+    spike_rates   = np.array([spike_rates[i] for i in Vh_ok])
+    isi_rates     = np.array([isi_rates[i] for i in Vh_ok])
 
+    if sum(spike_counts) == 0: return results
 
-    if sum(spike_counts)==0: return results   #if no spikes return none
+    gain_rheo_sweep = np.where(spike_counts > 0)[0][0]
+    results['gain_rheo'] = stim_currents[gain_rheo_sweep]
+
     plot_name = abf.abfID
     if_fit = fit_firing_gain(stim_currents, spike_counts, spike_rates,
                              abf, spike_times, isi_rates, to_plot=to_plot>0,
                              plot_name=plot_name, figopt=figopt,
                              max_fit_steps=max_fit_steps, rel_slope_cut=rel_slope_cut)
 
-    if sum(spike_counts)>0:
-        max_fire_sweep = np.where(spike_counts==np.max(spike_counts))[0][0]
-        ADR_sAHP_ind = np.where(stim_currents>0)[0][0]
-        ADR_sAHP_ind = int(ADR_sAHP_ind*factor)
-        ADR_sAHP_ind = np.min([ADR_sAHP_ind,max_fire_sweep])
-
-        results['sAHP']=calc_slow_afterhyp(abf,to_plot=to_plot>0,plot_name=plot_name)
-        # try: results['sAHP']=calc_slow_afterhyp(abf,ADR_sAHP_ind)
-        # except: results['sAHP']=np.nan
-        try: results['ADR'],_=calc_adapt_ratio(abf,ADR_sAHP_ind,spike_args,to_plot=False)
-        except: results['ADR']=np.nan
-
+    results['sAHP'] = calc_slow_afterhyp(abf, to_plot=to_plot>0, plot_name=plot_name)
 
     sweep = np.argmax(spike_results['spike_counts'])
-    phase_fig = ap_phase(abf,sweep,spike_results['spike_times'][sweep])
-    phase_fig.savefig( 'Saved_Figs/Firing_Gain/Phase'+'_' + plot_name +'.'+figopt['type'])
+    phase_fig = ap_phase(abf, sweep, spike_results['spike_times'][sweep])
+    phase_fig.savefig('Saved_Figs/Firing_Gain/Phase_' + plot_name + '.' + figopt['type'])
 
+    results['Gain_(HzpA)']  = if_fit['slope']
+    results['Gain_R2']      = if_fit['R2']
+    results['Spike_Counts'] = dict(zip(stim_currents, spike_counts))
+    results['Gain_Vh']      = v_before_stim
+    results['V_stim']       = calc_vm_stim(abf, is_stim, spike_counts, isi_rates, to_plot=False)
 
-    results['Gain_(HzpA)']=if_fit['slope']
-    results['Gain_R2']=if_fit['R2']
-    results['Spike_Counts']=dict(zip(stim_currents, spike_counts))
-    # results['Firing_Duration_%']=fire_dur
-    results['Gain_Vh']=v_before_stim
-    results['V_stim']= calc_vm_stim(abf,is_stim,spike_counts,isi_rates,to_plot=False)
-
-    adapt_res = adaption_analysis_v2(abf, spike_results, to_plot=to_plot>0,plot_name=plot_name,figopt=figopt)
-    results['max_adapt'] = adapt_res['max_adapt']
-    results['adapt_thresh_90'] = adapt_res['adapt_thresh_90']
-    results['isi_ratios'] = adapt_res['isi_ratios']
-    results['max_freq_isi_trace'] = adapt_res['max_freq_isi_trace']
-
-    results['inact_current_pA'] = if_fit['inact_current']
+    adapt_res = adaption_analysis_v3(spike_results, gain_rheo_sweep, factor=factor,
+                                     to_plot=to_plot>0, plot_name=plot_name, figopt=figopt)
+    
+    results.update(adapt_res)
 
     return results
-
-
-
-
-
-def adaption_analysis_v2(abf, spike_results, to_plot=False, plot_name='recording', figopt={'type':'jpg','dpi':300}):
-    # Extract spike data from results
-    spike_times = spike_results['spike_times']
-    mean_inst_rates = spike_results['isi_rates']
-    spike_rates = spike_results['spike_rates']
-    stim_currents = spike_results['stim_currents']
-
-    # Skip if insufficient spiking
-    max_spikes = np.max(spike_rates)
-    if max_spikes < 2:
-        return np.nan, np.nan
-
-    # Plot spike raster with instantaneous firing rates
-    if to_plot:
-        fig, (ax_spike_count, ax_isi, ax_max_freq_isi) = plt.subplots(3,1,figsize=(2,3))
-    colors = plt.cm.viridis(np.linspace(0, 1, len(spike_times)))
-    colors =  colors[::-1]
-    for si in range(len(spike_times)):
-        s = spike_times[si]
-        label = str(len(s)) + ' at ' + str(mean_inst_rates[si]) + ' hz'
-        last_x = s[-1:]
-        last_y = np.arange(len(s))[-1:] + 1
-        if to_plot:
-            ax_spike_count.plot(s, np.arange(len(s)) + 1, color=colors[si])
-            ax_spike_count.scatter(last_x, last_y, color=colors[si], label=label)
-            # if len(last_x) > 0:
-            #     ax_spike_count.text(last_x[0], last_y[0], str(stim_currents[si]) + 'pA', ha='left', va='bottom')
-
-
-    isi_ratios = np.full(len(spike_times),np.nan)
-    for i,st in enumerate(spike_times):
-        if len(st)>5:
-            isi = np.diff(st)*1000
-            rel_isi = isi/isi[0]
-            spike_no = np.arange(len(isi))+1
-            ax_isi.plot(spike_no, isi, color=colors[i], marker='o', label=str(int(stim_currents[i]))+'pA')
-            isi_ratios[i] = rel_isi[-1]
-        if len(st) == max_spikes:
-            isi = np.diff(st)*1000
-            rel_isi = isi/isi[0]
-            spike_no = np.arange(len(isi))+1
-            ax_max_freq_isi.plot(spike_no, rel_isi, color=colors[i], marker='o', label=str(int(stim_currents[i]))+'pA')
-            max_freq_isi_trace = {s:r for s,r in zip(spike_no, rel_isi)}
-            ax_max_freq_isi.set_xlabel('Spike Number (#)')
-            ax_max_freq_isi.set_ylabel('Adapt Ratio')
-            ax_max_freq_isi.axhline(1,color = 'k',linestyle=':')
-            ax_max_freq_isi.set_ylim(bottom=0)
-
-
-    if to_plot:
-        ax_spike_count.set_xlabel('Spike Time (s)')
-        ax_spike_count.set_ylabel('Spike Number (#)')
-        ax_spike_count.set_xlim(-.4, 1)
-        handles, labels = ax_spike_count.get_legend_handles_labels()
-        ax_spike_count.legend(handles[-4:], labels[-4:], loc='upper left', bbox_to_anchor=(1.1, 1))
-
-        ax_isi.set_xlabel('Spike Number (#)')
-        ax_isi.set_ylabel('Inter-Spike Interval (ms)')
-        # handles, labels = ax_isi.get_legend_handles_labels()
-        # ax_isi.legend(handles[-4:], labels[-4:], loc='upper left', bbox_to_anchor=(0, 1))
-        plt.tight_layout()
-
-    # Calculate adaptation: 1 - (spike_rate / instantaneous_rate)
-    sweep_adaption = [1 - (sr/mir if mir != 0 else 0) for sr, mir in zip(spike_rates, mean_inst_rates)]
-    sweep_adaption = [np.nan if sa < 0 else sa for sa in sweep_adaption]
-
-    # Find threshold where adaptation < 10%
-    non_adapting = np.array(sweep_adaption) < 0.1
-    if np.sum(non_adapting) == 0:
-        adapt_thresh_90 = np.nan
-    else:
-        adapt_thresh_90 = np.max(stim_currents[non_adapting])
-
-    # Calculate max adaptation for sweeps with sufficient instantaneous rate
-    sweep_adaption = [sweep_adaption[si] for si in range(len(spike_times)) if mean_inst_rates[si]*2 > max_spikes]
-    max_adapt = np.nanmax(sweep_adaption)
-
-    if to_plot:
-        fig.savefig('Saved_Figs/Firing_Gain/Adaption' + '_' + plot_name + '.' + figopt['type'], dpi=figopt['dpi'])
-
-    isi_ratios = {s:r for s,r in zip(stim_currents,isi_ratios)}
-
-    adapt_res = {'max_adapt':max_adapt,
-                 'adapt_thresh_90':adapt_thresh_90,
-                 'isi_ratios':isi_ratios,
-                 'max_freq_isi_trace':max_freq_isi_trace,}
-
-    return adapt_res
-
-
 
 def calc_vm_stim(abf,is_stim,spike_counts,isi_rates,to_plot=False):
     stim_traces=[]
@@ -249,29 +138,6 @@ def ap_phase(abf, sweep, spike_times, up_sample=True, window_ms=[-1, 8]):
     ax.set_xlabel('mV')
 
     return phase_fig
-
-
-
-def calc_adapt_ratio(abf,ADR_sAHP_ind,spike_args,to_plot=False):
-    '''Calculate the adaption Ratio using ISI ratios of a specified sweep'''
-
-    is_base, is_stim = protocol_baseline_and_stim(abf)
-    abf.setSweep(ADR_sAHP_ind)
-
-    dVds, over_thresh, inds, mean_spike_rate = find_spike_in_trace(abf.sweepY,abf.sampleRate,spike_args,is_stim=is_stim,mode='count')
-
-    isi_series = np.diff(np.array(inds)/abf.sampleRate)
-    ADR = isi_series[0]/isi_series[-1]
-
-    if to_plot:
-        fig, ax = plt.subplots(1,2)
-        ax[0].plot(abf.sweepX[is_stim],abf.sweepY[is_stim],'k')
-        ax[0].scatter(abf.sweepX[inds],abf.sweepY[inds],color='r')
-        ax[1].plot(isi_series*1000,'-o',color='k')
-
-    return ADR, isi_series
-
-
 
 
 
@@ -363,29 +229,6 @@ def fit_firing_gain(stim_currents, spike_counts, spike_rates, abf,spike_times,is
 
 
 
-
-def calc_inactivation(isi_rates, spike_counts, stim_currents, inact_thresh=0.9):
-    # Calculate ratio of spike count to ISI-based rate estimate
-    isi_ratio = np.divide(spike_counts, isi_rates, out=np.zeros_like(spike_counts, dtype=float), where=isi_rates!=0)
-
-    # Find first sweep after max spike count where ratio drops below threshold
-    max_ind = np.argmax(spike_counts)
-    inactivating = isi_ratio <= inact_thresh
-    after_max = np.cumsum(np.ones_like(isi_ratio)) >= max_ind
-    where_true = np.where(np.logical_and(inactivating, after_max))[0]
-
-    # Return current and pulse number where inactivation occurs
-    if len(where_true) > 0:
-        inact_pulse_num = where_true[0]
-        inact_current = stim_currents[inact_pulse_num]
-    else:
-        inact_pulse_num = np.nan
-        inact_current = stim_currents[-1] + 0.1
-
-    return inact_current, inact_pulse_num
-
-
-
 def calc_slow_afterhyp(abf,to_plot=False,plot_name=""):
     '''Calculate the slow after hyperpolarization of a specified sweep'''
 
@@ -439,3 +282,146 @@ def calc_slow_afterhyp(abf,to_plot=False,plot_name=""):
         plt.draw()
         fig.savefig( 'Saved_Figs/Firing_Gain/Slow_After_Hyperpolarization'+'_' + plot_name+'.jpg')
     return slow_afterhyp
+
+
+def adaption_analysis_v3(spike_results, gain_rheo_sweep, factor=2, inact_thresh=0.9, 
+                          outlier_isi_factor=3, ADR_min_spikes=10,
+                          to_plot=False, plot_name='recording', figopt={'type':'jpg','dpi':300}):
+
+    spike_times   = spike_results['spike_times']
+    isi_rates     = spike_results['isi_rates']
+    spike_rates   = spike_results['spike_rates']
+    spike_counts  = spike_results['spike_counts']
+    stim_currents = spike_results['stim_currents']
+
+    stim_currents = np.array(stim_currents)
+    spike_counts  = np.array(spike_counts)
+    spike_rates   = np.array(spike_rates)
+    isi_rates     = np.array(isi_rates)
+
+    max_spikes     = np.max(spike_rates)
+    max_fire_sweep = np.argmax(spike_counts)
+
+    # --- select ADR sweep: closest to 2x gain_rheo current, enough spikes ---
+    valid_sweeps_adr = np.where(np.array([len(st) for st in spike_times]) >= ADR_min_spikes)[0]
+    target_current   = stim_currents[gain_rheo_sweep] * factor
+    ADR_sweep        = valid_sweeps_adr[np.argmin(np.abs(stim_currents[valid_sweeps_adr] - target_current))]
+    ADR_sweep        = int(ADR_sweep) if len(valid_sweeps_adr) > 0 else None
+
+    # --- ADR: first/last ISI for chosen sweep, outliers excluded ---
+    st_adr = spike_times[ADR_sweep]
+    if len(st_adr) >= 2:
+        isi_adr       = np.diff(np.array(st_adr)) * 1000
+        isi_adr_thresh = np.median(isi_adr) * outlier_isi_factor
+        isi_adr_clean  = isi_adr[isi_adr <= isi_adr_thresh]
+        ADR = isi_adr_clean[0] / isi_adr_clean[-1] if len(isi_adr_clean) >= 2 else np.nan
+    else:
+        ADR = np.nan
+
+    # --- per-sweep ISI ratios, max-freq ISI trajectory, and outlier masks ---
+    isi_ratios         = np.full(len(spike_times), np.nan)
+    max_freq_isi_trace = {}
+    max_freq_isi_trace_raw = {}
+    max_spike_sweep    = np.argmax(spike_counts)
+    sweep_isis         = []
+    sweep_masks        = []
+
+    for i, st in enumerate(spike_times):
+        if len(st) > 5:
+            isi          = np.diff(np.array(st)) * 1000
+            isi_thresh   = np.median(isi) * outlier_isi_factor
+            outlier_mask = isi > isi_thresh
+            isi_clean    = isi[~outlier_mask]
+            if len(isi_clean) >= 2:
+                isi_ratios[i] = isi_clean[-1] / isi_clean[0]
+            if i == max_spike_sweep:
+                rel_isi       = isi / isi[0]
+                rel_isi_clean = np.where(outlier_mask, np.nan, rel_isi)
+                spike_no      = np.arange(len(isi)) + 1
+                max_freq_isi_trace     = {int(s): r for s, r in zip(spike_no, rel_isi_clean)}
+                max_freq_isi_trace_raw = {int(s): r for s, r in zip(spike_no, rel_isi)}
+            sweep_isis.append(isi)
+            sweep_masks.append(outlier_mask)
+        else:
+            sweep_isis.append(np.array([]))
+            sweep_masks.append(np.array([], dtype=bool))
+
+    isi_ratios = {float(s): r for s, r in zip(stim_currents, isi_ratios)}
+
+    # --- max_adapt ---
+    sweep_adaption = np.array([1 - (sr / mir if mir != 0 else 0) for sr, mir in zip(spike_rates, isi_rates)])
+    sweep_adaption[sweep_adaption < 0] = np.nan
+    valid_sweeps = isi_rates * 2 > max_spikes
+    max_adapt = np.nanmax(sweep_adaption[valid_sweeps]) if np.any(valid_sweeps) else np.nan
+
+    # --- inact_current ---
+    isi_ratio_arr = np.divide(spike_counts, isi_rates, out=np.zeros_like(spike_counts, dtype=float), where=isi_rates != 0)
+    max_ind       = np.argmax(spike_counts)
+    after_max     = np.arange(len(spike_counts)) >= max_ind
+    inactivating  = isi_ratio_arr <= inact_thresh
+    where_inact   = np.where(np.logical_and(inactivating, after_max))[0]
+    if len(where_inact) > 0:
+        inact_pulse_num = where_inact[0]
+        inact_current   = stim_currents[inact_pulse_num]
+    else:
+        inact_pulse_num = np.nan
+        inact_current   = stim_currents[-1] + 0.1
+
+    # --- plotting ---
+    if to_plot:
+        colors = plt.cm.viridis(np.linspace(0, 1, len(spike_times)))[::-1]
+        fig, (ax_spike_count, ax_isi, ax_max_freq_isi) = plt.subplots(3, 1, figsize=(2, 3))
+
+        # subplot 1: spike raster
+        for si, st in enumerate(spike_times):
+            if len(st) == 0:
+                continue
+            ax_spike_count.plot(st, np.arange(len(st)) + 1, color=colors[si])
+            ax_spike_count.scatter(st[-1], len(st), color=colors[si], zorder=5)
+
+        ax_spike_count.set_xlabel('Spike Time (s)')
+        ax_spike_count.set_ylabel('Spike Number (#)')
+        ax_spike_count.set_xlim(-0.4, 1)
+
+        # subplot 2: ISI traces, outliers as hollow circles
+        for i, (isi, outlier_mask) in enumerate(zip(sweep_isis, sweep_masks)):
+            if len(isi) == 0:
+                continue
+            spike_no = np.arange(len(isi)) + 1
+            ax_isi.plot(spike_no, isi, color=colors[i], marker='o', zorder=1)
+            if np.any(outlier_mask):
+                ax_isi.scatter(spike_no[outlier_mask], isi[outlier_mask],
+                               s=15, marker='o', color='white', zorder=2, edgecolor=colors[i])
+
+        ax_isi.set_xlabel('Spike Number (#)')
+        ax_isi.set_ylabel('Inter-Spike Interval (ms)')
+
+        # subplot 3: adapt ratio for max firing sweep
+        if max_freq_isi_trace:
+            sn       = np.array(list(max_freq_isi_trace.keys()))
+            ri_clean = np.array(list(max_freq_isi_trace.values()))
+            ri_raw   = np.array(list(max_freq_isi_trace_raw.values()))
+            outlier_mask_plot = np.isnan(ri_clean)
+            ax_max_freq_isi.plot(sn, ri_raw, c=colors[i], marker='o', zorder=1)
+            if np.any(outlier_mask_plot):
+                ax_max_freq_isi.scatter(sn[outlier_mask_plot], ri_raw[outlier_mask_plot],
+                                        s=10, marker='o', color='white', zorder=2, edgecolor=colors[i],)
+            ax_max_freq_isi.axhline(1, color='k', linestyle=':')
+            ax_max_freq_isi.set_ylim(bottom=0)
+            ax_max_freq_isi.set_xlabel('Spike Number (#)')
+            ax_max_freq_isi.set_ylabel('Adapt Ratio')
+
+        plt.tight_layout()
+        os.makedirs('Saved_Figs/Firing_Gain/', exist_ok=True)
+        fig.savefig('Saved_Figs/Firing_Gain/Adaption_' + plot_name + '.' + figopt['type'], dpi=figopt['dpi'])
+
+    return {
+        'ADR':                  ADR,
+        'ADR_sweep':            ADR_sweep,
+        'ADR_current':          stim_currents[ADR_sweep] if ADR_sweep is not None else np.nan,
+        'max_adapt':            max_adapt,
+        'isi_ratios':           isi_ratios,
+        'max_freq_isi_trace':   max_freq_isi_trace,
+        'inact_current':        inact_current,
+        'inact_pulse_num':      inact_pulse_num,
+    }
