@@ -18,7 +18,7 @@ def spikes_per_stim(abf,spike_args,mode='count'):
     for s in abf.sweepList:
         abf.setSweep(s)
         dVds, over_thresh, inds, mean_spike_rate = find_spike_in_trace(abf.sweepY,abf.sampleRate,spike_args,is_stim=is_stim,mode='count', to_plot=False)
-        rel_firing_duration = check_inactivation( abf.sweepX, abf.sweepY, is_stim, abf.sampleRate, dVds, inds, mean_spike_rate, to_plot=False )
+        rel_firing_duration = check_inactivation( abf.sweepX, abf.sweepY, is_stim, abf.sampleRate, dVds, inds, mean_spike_rate)
         # plot id'd spikes
         # calc multi sweep params
         stim_level = np.median(abf.sweepC[is_stim])
@@ -61,7 +61,7 @@ def spikes_per_stim(abf,spike_args,mode='count'):
 
 
 
-def check_inactivation( time, trace, is_stim, sample_rate, dVds, inds, mean_spike_rate, to_plot=0 ):
+def check_inactivation( time, trace, is_stim, sample_rate, dVds, inds, mean_spike_rate):
     time_ms = time*1000
     sum_isi = None
     rel_firing_duration = None
@@ -72,7 +72,7 @@ def check_inactivation( time, trace, is_stim, sample_rate, dVds, inds, mean_spik
     return rel_firing_duration
 
 
-def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode='count',sanity_check=True,to_plot=0):
+def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode='count',sanity_check=True,to_plot=False):
     '''
     Takes in a voltage trace from current clamp mode and uses derivative (dVds) to find action potentials.
     Returns the dVds trace, boolean array indicating if dVds>threshold, inicies where dV crossed threshold,
@@ -114,7 +114,7 @@ def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode
             if np.max(nearby_dVds)>high_dv_thresh and np.min(nearby_dVds) < low_dv_thresh:
                 inds.append(i)
                 if False: print(inds)
-    if to_plot>2:
+    if to_plot:
         fig1, axs1 = plt.subplots(1,figsize = [9,2])
         axs1.plot(np.arange(len(dVds))/rate,dVds,zorder=1)
         axs1.scatter((np.arange(len(dVds))/rate)[inds],dVds[inds],color='red',zorder=2)
