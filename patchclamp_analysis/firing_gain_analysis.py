@@ -193,8 +193,6 @@ def fit_firing_gain(stim_currents, spike_counts, spike_rates, abf,spike_times,is
     if_fit['slope'], if_fit['intercept'] , r_value, p_value, std_err = sci.stats.linregress(stim_currents[use_for_fit], spike_rates[use_for_fit])
     if_fit['R2'] = r_value**2
 
-    if_fit['inact_current'], inact_pulse_num = calc_inactivation(isi_rates,spike_counts,stim_currents,inact_thresh=0.9)
-
     big_marker = plt.rcParams['lines.markersize']*2
     if to_plot:
         my_fig, ax = plt.subplots(1,2, figsize=[3,1.5],gridspec_kw={'width_ratios': [2, 1]})
@@ -210,9 +208,6 @@ def fit_firing_gain(stim_currents, spike_counts, spike_rates, abf,spike_times,is
 
 
         ax[1].scatter(if_fit['stim_currents'], isi_rates,color='orange')
-
-        if not np.isnan(inact_pulse_num):
-            ax[1].scatter(if_fit['stim_currents'][inact_pulse_num], if_fit['spike_rates'][inact_pulse_num],marker="+",color='r')
 
         n = len(abf.sweepList)
         colors = plt.cm.viridis(np.linspace(0,1,n))
