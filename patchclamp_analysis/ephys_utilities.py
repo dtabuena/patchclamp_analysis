@@ -17,8 +17,8 @@ def spikes_per_stim(abf,spike_args,mode='count'):
     # get spike per sweep
     for s in abf.sweepList:
         abf.setSweep(s)
-        dVds, over_thresh, inds, mean_spike_rate = find_spike_in_trace(abf.sweepY,abf.sampleRate,spike_args,is_stim=is_stim,mode='count',to_plot=to_plot)
-        rel_firing_duration = check_inactivation( abf.sweepX, abf.sweepY, is_stim, abf.sampleRate, dVds, inds, mean_spike_rate, to_plot=0 )
+        dVds, over_thresh, inds, mean_spike_rate = find_spike_in_trace(abf.sweepY,abf.sampleRate,spike_args,is_stim=is_stim,mode='count', to_plot=False)
+        rel_firing_duration = check_inactivation( abf.sweepX, abf.sweepY, is_stim, abf.sampleRate, dVds, inds, mean_spike_rate, to_plot=False )
         # plot id'd spikes
         # calc multi sweep params
         stim_level = np.median(abf.sweepC[is_stim])
