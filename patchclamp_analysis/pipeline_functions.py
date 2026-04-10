@@ -48,6 +48,7 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs, redo_list=None):
                     results = {}
             else:
                 print(f"  No analyzer for protocol: {protocol}")
+                problem_recs.append((filepath, f"No analyzer for protocol: {protocol}"))
                 results = {}
 
             # Save results to the group
