@@ -43,8 +43,8 @@ def analysis_iterator_h5(h5_data_loc, analyzer_configs, redo_list=None):
                 try: 
                     results = analyzer_func(abf, **config)
                 except Exception as e:
-                    print(f'failed: {e}')
-                    problem_recs.append((filepath,e))
+                    tb = traceback.format_exc()
+                    problem_recs.append((filepath, e, tb))
                     results = {}
             else:
                 print(f"  No analyzer for protocol: {protocol}")
