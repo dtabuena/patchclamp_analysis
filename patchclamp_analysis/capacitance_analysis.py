@@ -126,6 +126,7 @@ def fit_Icapacitave_mean_current(abf, to_plot=False, verbose=False):
 
 
         rel_dif_Icap = movmean(np.diff(Icap_curve,append=Icap_curve[-1]),10)/peak_I
+        rel_dif_Icap = rel_dif_Icap[:len(Icap_curve_t)] # Incase too short
         excess_plat_t = Icap_curve_t[rel_dif_Icap>=0]
         if len(excess_plat_t)>0:
             excess_plat_start = np.min(excess_plat_t)*10
