@@ -299,10 +299,10 @@ def pclamp_mem_test(abf,to_plot = False, verbose =False,dpi=300):
         shift = abs(np.min(trace_to_fit))
         shifted_trace = trace_to_fit+shift*2
         if np.any(shifted_trace <= 0):
-            print('shift',np.min(trace_to_fit))
-            print(shifted_trace.dtype)
-            print(shifted_trace)
-            np.savetxt('trace_to_fit.csv', trace_to_fit, delimiter=',')
+        print('shift',np.min(trace_to_fit))
+        print(shifted_trace.dtype)
+        print(shifted_trace)
+        np.savetxt('trace_to_fit.csv', trace_to_fit, delimiter=',')
         ln_trace = np.log(shifted_trace)
 
 
