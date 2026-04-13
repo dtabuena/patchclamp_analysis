@@ -25,6 +25,9 @@ def rheobase_analyzer_V2(abf,
         return results
     else:
         is_base, is_stim = protocol_baseline_and_stim(abf)
+        if not np.any(is_stim):
+            results = {'message': 'No stim detected'}
+            return results
         spike_results = spikes_per_stim(abf, spike_args)
         stim_currents = spike_results['stim_currents']
         spike_counts = spike_results['spike_counts']
