@@ -305,7 +305,8 @@ def pclamp_mem_test(abf,to_plot = False, verbose =False,dpi=300):
             print('shift',np.min(trace_to_fit))
             print(shifted_trace.dtype)
             print(shifted_trace)
-            np.savetxt('trace_to_fit.csv', trace_to_fit, delimiter=',')
+            np.set_printoptions(threshold=np.inf)
+            print(trace_to_fit)
 
 
         if len(time_to_fit)>1:
