@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import h5py
 import pyabf
+import traceback
 from tqdm import tqdm
 import re
 
