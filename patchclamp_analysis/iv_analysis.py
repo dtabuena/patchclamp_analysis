@@ -38,6 +38,10 @@ def IV_analyzer_v4(abf, Na_window=[.2, 3], K_window=[40,50], to_plot=True, leak_
     """
 
     is_base, is_stim = protocol_baseline_and_stim(abf)
+
+    if not np.any(is_stim):
+        results = {'message': 'No stim detected'}
+        return results
     t0_relative = abf.sweepX[np.where(is_stim)[0][0]]*1000
     na_start, na_stop = [x + t0_relative for x in Na_window]
     k_start, k_stop   = [x + t0_relative for x in K_window]
