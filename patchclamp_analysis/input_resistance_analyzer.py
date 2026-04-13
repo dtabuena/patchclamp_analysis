@@ -15,6 +15,10 @@ def input_resistance_analyzer(abf, dVm_limits = [-30, 10],to_plot=False,figopt={
     stim_currents = []
     ss_voltage = []
     is_base, is_stim = protocol_baseline_and_stim(abf)
+    if not np.any(is_stim):
+        results = {'message': 'no stim detected'}
+        return results
+    for s in abf.sweepList:
     for s in abf.sweepList:
         abf.setSweep(s)
         delta_v, _, _ = sweep_VIR(abf.sweepY, abf.sampleRate, is_stim = is_stim)
