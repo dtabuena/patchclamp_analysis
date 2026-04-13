@@ -199,8 +199,9 @@ def fit_Icapacitave_mean_current(abf, to_plot=False, verbose=False):
 
 def pclamp_mem_test(abf,to_plot = False, verbose =False,dpi=300):
     # load file if name given instead of true abf
-    command = abf.sweepC*1e-3
-    trace = abf.sweepY*1e-12
+    command = abf.sweepC.astype(np.float64) * 1e-3
+    trace = abf.sweepY.astype(np.float64) * 1e-12
+    
     sweep_time = abf.sweepX
 
     # make all pos
