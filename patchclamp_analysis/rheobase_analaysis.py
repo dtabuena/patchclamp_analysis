@@ -114,8 +114,9 @@ def single_ap_stats(abf,spike_args,window_ms=[-3, 6.5],rise_fraction=0.90,to_plo
     ap_thresh= spike_trace_y[ap_thresh_ind]
 
     'AP Max'
-    v_max = np.max(spike_trace_y)
-    v_max_ind = np.argmax(spike_trace_y)
+    peak_search_end = ap_thresh_ind + int(2/1000*sample_rate)
+    v_max_ind = np.argmax(spike_trace_y[ap_thresh_ind:peak_search_end]) + ap_thresh_ind
+    v_max = spike_trace_y[v_max_ind]
     ap_amplitutude = v_max-ap_thresh
     v_min = np.min(spike_trace_y)
 
