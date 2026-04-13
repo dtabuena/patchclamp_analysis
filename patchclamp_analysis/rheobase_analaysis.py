@@ -22,6 +22,7 @@ def rheobase_analyzer_V2(abf,
 
     # Rheobase Measure:
     if len(abf.sweepList)<2:
+        results = {'message': 'Not enough Sweeps'}
         return results
     else:
         is_base, is_stim = protocol_baseline_and_stim(abf)
