@@ -295,8 +295,9 @@ def pclamp_mem_test(abf,to_plot = False, verbose =False,dpi=300):
 
         'linear fit of ln_trace'
         '(with baseline shift to avoid log(x<0)'
-        trace_to_fit = trace_to_fit
         shift = abs(np.min(trace_to_fit))
+        print('shift',np.min(trace_to_fit))
+        print(trace_to_fit)
         ln_trace = np.log(trace_to_fit+shift*2)
 
 
