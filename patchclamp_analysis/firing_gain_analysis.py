@@ -346,7 +346,7 @@ def adaption_analysis_v3(spike_results, gain_rheo_sweep, factor=2, inact_thresh=
     isi_ratios = {float(s): r for s, r in zip(stim_currents, isi_ratios)}
 
     # --- max_adapt ---
-    sweep_adaption = np.array([1 - (sr / mir if mir != 0 else 0) for sr, mir in zip(spike_rates, isi_rates)])
+    sweep_adaption = np.array([1 - (sr / mir if mir != 0 else 0) for sr, mir in zip(spike_rates, isi_rates)], dtype=float)
     sweep_adaption[sweep_adaption < 0] = np.nan
     valid_sweeps = isi_rates * 2 > max_spikes
     max_adapt = np.nanmax(sweep_adaption[valid_sweeps]) if np.any(valid_sweeps) else np.nan
