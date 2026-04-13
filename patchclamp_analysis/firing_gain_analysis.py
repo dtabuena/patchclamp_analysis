@@ -279,7 +279,7 @@ def calc_slow_afterhyp(abf,to_plot=False,plot_name=""):
 
 
 def adaption_analysis_v3(spike_results, gain_rheo_sweep, factor=2, inact_thresh=0.9, 
-                          outlier_isi_factor=3, ADR_min_spikes=10,
+                          outlier_isi_factor=3, ADR_min_spikes=5,
                           to_plot=False, plot_name='recording', figopt={'type':'jpg','dpi':300}):
 
     spike_times   = spike_results['spike_times']
@@ -299,18 +299,21 @@ def adaption_analysis_v3(spike_results, gain_rheo_sweep, factor=2, inact_thresh=
     # --- select ADR sweep: closest to 2x gain_rheo current, enough spikes ---
     valid_sweeps_adr = np.where(np.array([len(st) for st in spike_times]) >= ADR_min_spikes)[0]
     target_current   = stim_currents[gain_rheo_sweep] * factor
-    ADR_sweep        = valid_sweeps_adr[np.argmin(np.abs(stim_currents[valid_sweeps_adr] - target_current))]
-    ADR_sweep        = int(ADR_sweep) if len(valid_sweeps_adr) > 0 else None
 
-    # --- ADR: first/last ISI for chosen sweep, outliers excluded ---
-    st_adr = spike_times[ADR_sweep]
-    if len(st_adr) >= 2:
-        isi_adr       = np.diff(np.array(st_adr)) * 1000
-        isi_adr_thresh = np.median(isi_adr) * outlier_isi_factor
-        isi_adr_clean  = isi_adr[isi_adr <= isi_adr_thresh]
-        ADR = isi_adr_clean[0] / isi_adr_clean[-1] if len(isi_adr_clean) >= 2 else np.nan
+    if len(valid_sweeps_adr) == 0:
+        ADR_sweep = None
+        ADR       = np.nan
     else:
-        ADR = np.nan
+        ADR_sweep = int(valid_sweeps_adr[np.argmin(np.abs(stim_currents[valid_sweeps_adr] - target_current))])
+        # --- ADR: first/last ISI for chosen sweep, outliers excluded ---
+        st_adr    = spike_times[ADR_sweep]
+        if len(st_adr) >= 2:
+            isi_adr        = np.diff(np.array(st_adr)) * 1000
+            isi_adr_thresh = np.median(isi_adr) * outlier_isi_factor
+            isi_adr_clean  = isi_adr[isi_adr <= isi_adr_thresh]
+            ADR = isi_adr_clean[0] / isi_adr_clean[-1] if len(isi_adr_clean) >= 2 else np.nan
+        else:
+            ADR = np.nan
 
     # --- per-sweep ISI ratios, max-freq ISI trajectory, and outlier masks ---
     isi_ratios         = np.full(len(spike_times), np.nan)
