@@ -96,8 +96,16 @@ def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode
 
     if any(is_stim == None):
         is_stim = [True for i in trace]
+        
     dVds = np.diff(trace, prepend=trace[0])*rate/1000
-    over_thresh = dVds>spike_thresh
+    cutoff      = 2000
+    nyq         = rate / 2
+    b, a        = sci.signal.butter(2, cutoff / nyq, btype='low')
+    trace_det   = sci.signal.filtfilt(b, a, trace)
+    dVds_filt   = np.diff(trace_det, prepend=trace_det[0]) * rate / 1000
+
+    
+    over_thresh = nearby_dVds>spike_thresh
     over_thresh[np.logical_not(is_stim)] = False
     refract_window = int(np.round((refract*rate)))
     inds = [t for t in np.arange(refract_window,len(over_thresh)) if all([over_thresh[t], all(over_thresh[t-refract_window:t]==False)])]
@@ -108,7 +116,7 @@ def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode
             samp_window = window_ms/1000 * rate
             ind_range = np.arange(i-samp_window,i+samp_window).astype(int)
             ind_range = ind_range[ind_range<len(dVds)]
-            nearby_dVds = dVds[ind_range]
+            nearby_dVds = dVds_filt[ind_range]
             if False: print(i,'max', np.max(nearby_dVds))
             if False: print(i,'min', np.min(nearby_dVds))
             if np.max(nearby_dVds)>high_dv_thresh and np.min(nearby_dVds) < low_dv_thresh:
@@ -116,8 +124,8 @@ def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode
                 if False: print(inds)
     if to_plot:
         fig1, axs1 = plt.subplots(1,figsize = [9,2])
-        axs1.plot(np.arange(len(dVds))/rate,dVds,zorder=1)
-        axs1.scatter((np.arange(len(dVds))/rate)[inds],dVds[inds],color='red',zorder=2)
+        axs1.plot(np.arange(len(dVds_filt))/rate,dVds_filt,zorder=1)
+        axs1.scatter((np.arange(len(dVds_filt))/rate)[inds],dVds_filt[inds],color='red',zorder=2)
         plt.show()
     if len(inds)<1:
         mean_spike_rate = 0
