@@ -106,7 +106,7 @@ def find_spike_in_trace(trace,rate,spike_args,refract=0.005,is_stim = None ,mode
     dVds_filt   = np.diff(trace_det, prepend=trace_det[0]) * rate / 1000
 
     
-    over_thresh = nearby_dVds>spike_thresh
+    over_thresh = dVds_filt>spike_thresh
     over_thresh[np.logical_not(is_stim)] = False
     refract_window = int(np.round((refract*rate)))
     inds = [t for t in np.arange(refract_window,len(over_thresh)) if all([over_thresh[t], all(over_thresh[t-refract_window:t]==False)])]
