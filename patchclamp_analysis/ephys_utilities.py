@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy as sci
 
 def spikes_per_stim(abf,spike_args,mode='count'):
     '''Loops through sweeps of an abf to find spikes'''
