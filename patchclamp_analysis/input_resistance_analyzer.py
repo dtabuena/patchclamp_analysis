@@ -19,7 +19,6 @@ def input_resistance_analyzer(abf, dVm_limits = [-30, 10],to_plot=False,figopt={
         results = {'message': 'no stim detected'}
         return results
     for s in abf.sweepList:
-    for s in abf.sweepList:
         abf.setSweep(s)
         delta_v, _, _ = sweep_VIR(abf.sweepY, abf.sampleRate, is_stim = is_stim)
         delta_I, _, _    = sweep_VIR(abf.sweepC, abf.sampleRate, is_stim = is_stim) # repurpose but for command current
