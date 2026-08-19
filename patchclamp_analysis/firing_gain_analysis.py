@@ -36,7 +36,7 @@ def gain_analyzer_v2(abf, spike_args={'spike_thresh':10, 'high_dv_thresh': 25, '
     spike_counts  = np.array([spike_counts[i] for i in Vh_ok])
     v_before_stim = np.array([v_before_stim[i] for i in Vh_ok])
     spike_rates   = np.array([spike_rates[i] for i in Vh_ok])
-    isi_rates     = np.array([isi_rates[i] for i in Vh_ok])
+    isi_rates     = np.array([isi_rates[i] for i in Vh_ok])    
 
     if sum(spike_counts) == 0: return results
 
@@ -60,7 +60,8 @@ def gain_analyzer_v2(abf, spike_args={'spike_thresh':10, 'high_dv_thresh': 25, '
     results['Spike_Counts'] = dict(zip(stim_currents, spike_counts))
     results['Gain_Vh']      = v_before_stim
     results['V_stim']       = calc_vm_stim(abf, is_stim, spike_counts, isi_rates, to_plot=False)
-
+    results['max_firing_rate'] = np.max(spike_rates)
+                         
     adapt_res = adaption_analysis_v3(spike_results, gain_rheo_sweep, factor=factor,
                                      to_plot=to_plot, plot_name=plot_name, figopt=figopt)
     results.update(adapt_res)
