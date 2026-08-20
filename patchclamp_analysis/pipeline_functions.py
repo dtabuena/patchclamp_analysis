@@ -372,7 +372,7 @@ def get_datasets_from_h5(h5_file, dataset_names, attributes=None):
     rows = []
 
     with h5py.File(h5_file, 'r') as hf:
-        for group_name in hf.keys():
+        for group_name in tqdm(hf.keys(),desc='Loop Groups'):
             group = hf[group_name]
 
             row = {'cell_id': group.attrs.get('cell_id', group_name)}
